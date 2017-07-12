@@ -2,7 +2,8 @@ package sequence
 
 import (
 	"core"
-	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -30,7 +31,13 @@ func TestSequenceBuildDot(t *testing.T) {
 
 	seq.AddNote(&Note{Obj: "ZXUN B200", Name: "A", Font: noteFont})
 
-	dot := seq.BuildDot()
+	//fmt.Print("dot =\n", dot)
 
-	fmt.Print("dot =\n", dot)
+	fileStandard := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_standard\\test1.gv"
+	fileOutput := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_output\\test1.gv"
+
+	seq.BuildDotFile(fileOutput)
+	if !core.FileEqual(fileStandard, fileOutput) {
+		t.Errorf("TestSequenceBuildDot: ouput file \"%s\" is not equal standard file \"%s\"", filepath.Base(fileOutput), filepath.Base(fileStandard))
+	}
 }

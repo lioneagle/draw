@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"core"
 	"fmt"
+	"os"
 )
 
 const (
@@ -100,6 +101,16 @@ func (this *Sequence) AddMessage(message *Message) {
 
 func (this *Sequence) AddNote(note *Note) {
 	this.actions = append(this.actions, note)
+}
+
+func (this *Sequence) BuildDotFile(filename string) {
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Printf("ERROR: cannot open file %s\r\n", filename)
+	}
+	defer file.Close()
+
+	file.WriteString(this.BuildDot())
 }
 
 func (this *Sequence) BuildDot() string {
