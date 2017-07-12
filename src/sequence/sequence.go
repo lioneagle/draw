@@ -107,16 +107,17 @@ func (this *Sequence) AddNote(note *Note) {
 func (this *Sequence) BuildAndGenDotPng(pngfile string) {
 	dotfile := core.ReplaceFileSuffix(pngfile, "gv")
 	this.BuildDotFile(dotfile)
-	cmd := exec.Command("dot", "-Kdot", "-Tpng", dotfile, fmt.Sprintf("-o%s", pngfile))
+	this.GenDotPng(dotfile, pngfile)
+}
+
+func (this *Sequence) GenDotPng(dotfile, pngfile string) {
+	cmd := exec.Command("dot", "-Kdot", "-Tpng", dotfile, "-o", pngfile)
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println("err =", err)
 	}
-}
-
-func (this *Sequence) GenDotPng(dotfile, pngfile string) {
-	exec.Command("dot", "-Kdot -Tpng ", dotfile, pngfile)
+	os.Remove(dotfile)
 }
 
 func (this *Sequence) BuildDotFile(filename string) {
