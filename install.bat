@@ -6,14 +6,21 @@ goto end
 : ok
 call env.bat
 gofmt -w src
+
+if %GOARCH% == 386 goto build_32
 go install %1
-if %GOARCH% == amd64 goto build_32
+copy .\bin\%1.exe  .\bin\%164.exe
+del .\bin\%1.exe
 goto end
-:build_32
+
 set GOARCH=386
-go build -o=%132.exe %1
-copy %132.exe  .\bin\%132.exe
-del %132.exe
+go build -o=.\bin\%132.exe %1
 set GOARCH=amd64
+
+:build_32
+go install %1
+copy .\bin\%1.exe  .\bin\%132.exe
+del .\bin\%1.exe
+goto end
 :end
 echo finished
