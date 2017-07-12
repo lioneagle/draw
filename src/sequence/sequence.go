@@ -5,6 +5,7 @@ import (
 	"core"
 	"fmt"
 	"os"
+	"os/exec"
 )
 
 const (
@@ -103,10 +104,26 @@ func (this *Sequence) AddNote(note *Note) {
 	this.actions = append(this.actions, note)
 }
 
+func (this *Sequence) BuildAndGenDotPng(pngfile string) {
+	dotfile := core.ReplaceFileSuffix(pngfile, "gv")
+	this.BuildDotFile(dotfile)
+	cmd := exec.Command("dot", "-Kdot", "-Tpng", dotfile, fmt.Sprintf("-o%s", pngfile))
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("err =", err)
+	}
+}
+
+func (this *Sequence) GenDotPng(dotfile, pngfile string) {
+	exec.Command("dot", "-Kdot -Tpng ", dotfile, pngfile)
+}
+
 func (this *Sequence) BuildDotFile(filename string) {
 	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("ERROR: cannot open file %s\r\n", filename)
+		return
 	}
 	defer file.Close()
 

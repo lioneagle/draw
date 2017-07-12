@@ -33,11 +33,20 @@ func TestSequenceBuildDot(t *testing.T) {
 
 	//fmt.Print("dot =\n", dot)
 
-	fileStandard := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_standard\\test1.gv"
-	fileOutput := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_output\\test1.gv"
+	dotStandard := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_standard\\test1.gv"
+	dotOutput := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_output\\test1.gv"
 
-	seq.BuildDotFile(fileOutput)
-	if !core.FileEqual(fileStandard, fileOutput) {
-		t.Errorf("TestSequenceBuildDot: ouput file \"%s\" is not equal standard file \"%s\"", filepath.Base(fileOutput), filepath.Base(fileStandard))
+	pngStandard := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_standard\\test2.png"
+	pngOutput := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_output\\test2.png"
+
+	seq.BuildAndGenDotPng(pngOutput)
+
+	seq.BuildDotFile(dotOutput)
+	if !core.FileEqual(dotStandard, dotOutput) {
+		t.Errorf("TestSequenceBuildDot: ouput file \"%s\" is not equal standard file \"%s\"", filepath.Base(dotOutput), filepath.Base(dotStandard))
+	}
+
+	if !core.FileEqual(pngStandard, pngOutput) {
+		t.Errorf("TestSequenceBuildDot: ouput file \"%s\" is not equal standard file \"%s\"", filepath.Base(pngOutput), filepath.Base(pngStandard))
 	}
 }

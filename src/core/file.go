@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 )
 
 func FileEqual(filename1, filename2 string) bool {
@@ -20,4 +22,11 @@ func FileEqual(filename1, filename2 string) bool {
 	}
 
 	return bytes.Equal(file1, file2)
+}
+
+func ReplaceFileSuffix(filename, newSuffix string) string {
+	base := filepath.Base(filename)
+	ext := filepath.Ext(base)
+	newName := strings.TrimSuffix(filename, ext)
+	return fmt.Sprintf("%s.%s", newName, newSuffix)
 }
