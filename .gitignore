@@ -22,7 +22,6 @@ _cgo_export.*
 _testmain.go
 
 *_cover.out
-*.exe
 *_coverage.html
 *_cpu.out
 test_temp
