@@ -31,20 +31,14 @@ type Object struct {
 	IsMain bool
 }
 
-func (this *Object) Equal(other *Object) bool {
-	return this.Name == other.Name
-}
-
 const (
 	ACTION_TYPE_MESSAGE = iota
 	ACTION_TYPE_NOTE
 )
 
 type Action interface {
-	IsAction() bool
 	Type() int
 	GetRow() int
-	GetId() int
 }
 
 type Message struct {
@@ -57,10 +51,8 @@ type Message struct {
 	Id      int
 }
 
-func (this *Message) IsAction() bool { return true }
-func (this *Message) Type() int      { return ACTION_TYPE_MESSAGE }
-func (this *Message) GetRow() int    { return this.Row }
-func (this *Message) GetId() int     { return this.Id }
+func (this *Message) Type() int   { return ACTION_TYPE_MESSAGE }
+func (this *Message) GetRow() int { return this.Row }
 
 type Note struct {
 	Obj  string
@@ -70,10 +62,8 @@ type Note struct {
 	Row  int
 }
 
-func (this *Note) IsAction() bool { return true }
-func (this *Note) Type() int      { return ACTION_TYPE_NOTE }
-func (this *Note) GetRow() int    { return this.Row }
-func (this *Note) GetId() int     { return this.Id }
+func (this *Note) Type() int   { return ACTION_TYPE_NOTE }
+func (this *Note) GetRow() int { return this.Row }
 
 type Sequence struct {
 	objects []*Object
