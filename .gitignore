@@ -28,7 +28,6 @@ _testmain.go
 test_temp
 *.csv
 
-*.exe
 *.test
 *.prof
 
