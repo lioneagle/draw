@@ -65,6 +65,29 @@ type Note struct {
 func (this *Note) Type() int   { return ACTION_TYPE_NOTE }
 func (this *Note) GetRow() int { return this.Row }
 
+type SequenceConfig struct {
+	TextBackgroundColor   *core.Color
+	CrossNeighborMsgColor *core.Color
+	MainObjectFillColor   *core.Color
+	ObjectFont            *core.Font
+	MsgFont               *core.Font
+	NoteFont              *core.Font
+}
+
+func NewSequenceConfig() *SequenceConfig {
+	s := &SequenceConfig{}
+
+	s.TextBackgroundColor = &core.Color{Red: 232, Green: 248, Blue: 247}
+	s.CrossNeighborMsgColor = &core.Color{Red: 68, Green: 170, Blue: 205}
+	s.MainObjectFillColor = core.ColorGold
+
+	s.ObjectFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
+	s.MsgFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
+	s.NoteFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
+
+	return s
+}
+
 type Sequence struct {
 	objects []*Object
 	actions []Action
@@ -94,9 +117,9 @@ func (this *Sequence) AddNote(note *Note) {
 	this.actions = append(this.actions, note)
 }
 
-func (this *Sequence) BuildAndGenDotPng(pngfile string) {
+func (this *Sequence) BuildAndGenDotPng(pngfile string, config *SequenceConfig) {
 	dotfile := core.ReplaceFileSuffix(pngfile, "gv")
-	this.BuildDotFile(dotfile)
+	this.BuildDotFile(dotfile, config)
 	this.GenDotPng(dotfile, pngfile)
 }
 
@@ -110,7 +133,7 @@ func (this *Sequence) GenDotPng(dotfile, pngfile string) {
 	os.Remove(dotfile)
 }
 
-func (this *Sequence) BuildDotFile(filename string) {
+func (this *Sequence) BuildDotFile(filename string, config *SequenceConfig) {
 	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("ERROR: cannot open file %s\r\n", filename)
@@ -118,20 +141,31 @@ func (this *Sequence) BuildDotFile(filename string) {
 	}
 	defer file.Close()
 
-	file.WriteString(this.BuildDot())
+	file.WriteString(this.BuildDot(config))
 }
 
-func (this *Sequence) BuildDot() string {
+func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	var buf bytes.Buffer
 
 	m, _ := this.getSteps()
 
-	buf.WriteString(`digraph G {
+	format := `digraph G {
     rankdir="LR";
-    node[shape="point", width=0, height=0];
-    edge[arrowhead="none", style="solid"]
+    node[shape="point", width=0, height=0, fontname="%s", fontsize=%d];
+    edge[arrowhead="none", style="solid", fontname="%s", fontsize=%d];
 	
-	`)
+	`
+
+	buf.WriteString(fmt.Sprintf(format,
+		config.ObjectFont.GetDotName(),
+		config.ObjectFont.Size,
+		config.MsgFont.GetDotName(),
+		config.MsgFont.Size))
+
+	/*buf.WriteString(fmt.Sprintf(format,
+	config.ObjectFont.GetDotName(), config.ObjectFont.Size,
+	config.MsgFont.GetDotName(), config.MsgFont.Size)
+	)*/
 
 	for i, v := range this.objects {
 		v.Id = i
@@ -143,20 +177,20 @@ func (this *Sequence) BuildDot() string {
 		buf.WriteString("        rank=\"same\";\r\n")
 		buf.WriteString("        edge[style=\"solid\"];\r\n")
 		if !v.IsMain {
-			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"record\", label=\"%s\"];\r\n", v.Id, v.Name))
+			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", width=1, height=0.5];\r\n", v.Id, v.Name))
 		} else {
-			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"record\", label=\"%s\", fillcolor=\"%s\", style=filled];\r\n",
-				v.Id, v.Name, core.ColorGold.String()))
+			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];\r\n",
+				v.Id, v.Name, config.MainObjectFillColor.String()))
 		}
 
 		steps, _ := m[v.Name]
 		for j, s := range steps.Data {
 			if j == (len(steps.Data) - 1) {
-				buf.WriteString(fmt.Sprintf("        obj%d_step_%d[shape=\"\", width=0.5, label=\"\"];\r\n", v.Id, s.Id))
+				buf.WriteString(fmt.Sprintf("        obj%d_step_%d[shape=\"box\", width=0.5, label=\"\"];\r\n", v.Id, s.Id))
 				break
 			}
 			if s.Type == STEP_TYPE_NOTE {
-				buf.WriteString(fmt.Sprintf("        obj%d_note_%d[shape=\"circle\", label=\"%s\"];\r\n", v.Id, s.Id, s.Name))
+				buf.WriteString(fmt.Sprintf("        obj%d_note_%d[shape=\"circle\", label=\"%s\", width=0.51];\r\n", v.Id, s.Id, s.Name))
 			}
 		}
 
@@ -188,15 +222,15 @@ func (this *Sequence) BuildDot() string {
 					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];\r\n",
 						from.Id, data.Id, from.Id+1, data.Id, data.Name))
 				} else {
-					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", color=\"%s\"];\r\n",
-						from.Id, data.Id, from.Id+1, data.Id, data.Name, core.ColorAqua.String(), core.ColorAqua.String()))
+					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\"];\r\n",
+						from.Id, data.Id, from.Id+1, data.Id, data.Name, config.CrossNeighborMsgColor.String()))
 					for k = from.Id + 1; k < to.Id; k++ {
 						if k != (to.Id - 1) {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];\r\n",
-								k, data.Id, k+1, data.Id, core.ColorAqua.String()))
+								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.String()))
 						} else {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];\r\n",
-								k, data.Id, k+1, data.Id, core.ColorAqua.String()))
+								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.String()))
 						}
 					}
 				}
@@ -206,15 +240,15 @@ func (this *Sequence) BuildDot() string {
 					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];\r\n",
 						from.Id, data.Id, from.Id-1, data.Id, data.Name))
 				} else {
-					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", color=\"%s\"];\r\n",
-						from.Id, data.Id, from.Id-1, data.Id, data.Name, core.ColorAqua.String(), core.ColorAqua.String()))
+					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", ];\r\n",
+						from.Id, data.Id, from.Id-1, data.Id, data.Name, config.CrossNeighborMsgColor.String()))
 					for k = from.Id - 1; k > to.Id; k-- {
 						if k != (to.Id + 1) {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];\r\n",
-								k, data.Id, k-1, data.Id, core.ColorAqua.String()))
+								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.String()))
 						} else {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];\r\n",
-								k, data.Id, k-1, data.Id, core.ColorAqua.String()))
+								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.String()))
 						}
 					}
 				}

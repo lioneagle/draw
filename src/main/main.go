@@ -1,18 +1,18 @@
 package main
 
 import (
-	"core"
+	//"core"
 	//"os"
 	"sequence"
 )
 
 func main() {
 	seq := &sequence.Sequence{}
+	config := sequence.NewSequenceConfig()
 
-	color := core.NewColor()
-	objectFont := &core.Font{Name: "ObjectFont", Style: "FangSong", Color: *color, Size: 14}
-	messageFont := &core.Font{Name: "MessageFont", Style: "FangSong", Color: *color, Size: 9}
-	noteFont := &core.Font{Name: "NodeFont", Style: "FangSong", Color: *color, Size: 9}
+	objectFont := config.ObjectFont
+	messageFont := config.MsgFont
+	noteFont := config.NoteFont
 
 	seq.AddObject(&sequence.Object{Name: "UE", Font: objectFont})
 	seq.AddObject(&sequence.Object{Name: "ZXUN B200", Font: objectFont, IsMain: true})
@@ -39,5 +39,5 @@ func main() {
 	pngOutput := `F:\DevCode\go_code\src\my_code\draw\src\testdata\test_output\test2.png`
 	//pngOutput := `d:/test2.png`
 
-	seq.BuildAndGenDotPng(pngOutput)
+	seq.BuildAndGenDotPng(pngOutput, config)
 }

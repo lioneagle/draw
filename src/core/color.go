@@ -10,8 +10,8 @@ type Color struct {
 	Blue  byte
 }
 
-func NewColor() *Color {
-	return &Color{}
+func NewColor(Red, Green, Blue byte) *Color {
+	return &Color{Red: Red, Green: Green, Blue: Blue}
 }
 
 func (this *Color) String() string {
@@ -37,6 +37,7 @@ func (this *ColorPool) GetColor(name string) (color *Color, ok bool) {
 
 var (
 	ColorBlack *Color = &Color{}
+	ColorWhite *Color = NewColor(255, 255, 255)
 	ColorRed   *Color = &Color{Red: 255}
 	ColorGreen *Color = &Color{Green: 255}
 	ColorBlue  *Color = &Color{Blue: 255}
