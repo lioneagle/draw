@@ -9,18 +9,21 @@ gofmt -w src
 
 if %GOARCH% == amd64 (
 go install %1
-copy .\bin\%1.exe  .\bin\%164.exe
-del .\bin\%1.exe
 
-set GOARCH=386
-go build -o=.\bin\%132.exe %1
-set GOARCH=amd64
+	if exist .\bin\%1.exe (
+		copy .\bin\%1.exe  .\bin\%164.exe
+		del .\bin\%1.exe
+		
+		set GOARCH=386
+		go build -o=.\bin\%132.exe %1
+		set GOARCH=amd64
+	)
 
 ) else (
 
-go install %1
-copy .\bin\%1.exe  .\bin\%132.exe
-del .\bin\%1.exe
+	go install %1
+	copy .\bin\%1.exe  .\bin\%132.exe
+	del .\bin\%1.exe
 
 )
 
