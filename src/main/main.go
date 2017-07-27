@@ -52,111 +52,112 @@ func main() {
 	//oldbmp := win.SelectObject(hdc, win.HGDIOBJ(hbmp))
 	//defer win.SelectObject(hdc, oldbmp)
 
-	var brushWhite *win.GpSolidFill
-	err = win.GdipCreateSolidFill(0x09FFFFFF, &brushWhite)
+	var brush1 *win.GpSolidFill
+	err = win.GdipCreateSolidFill(0xFF000000, &brush1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer win.GdipDeleteBrush(&brushWhite.GpBrush)
+	defer win.GdipDeleteBrush(&brush1.GpBrush)
 	/*
 
 	 */
 
 	var graphics *win.GpGraphics
-	//err = win.GdipCreateFromHDC(hdc, &graphics)
-	err = win.GdipGetImageGraphicsContext(&bitmap.GpImage, &graphics)
+	err = win.GdipCreateFromHDC(hdc, &graphics)
+	//err = win.GdipGetImageGraphicsContext(&bitmap.GpImage, &graphics)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer win.GdipDeleteGraphics(graphics)
 
-	err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeAntiAlias)
+	//err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeAntiAlias)
+	/*err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeDefault)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}*/
+
+	err = win.GdipFillRectangle(graphics, &brush1.GpBrush, 50.0, 50.0, 300.0, 300.0)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	err = win.GdipFillRectangle(graphics, &brushWhite.GpBrush, 0, 0, 600, 600)
+	//*
+	var brush *win.GpSolidFill
+	err = win.GdipCreateSolidFill(0x900000FF, &brush)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteBrush(&brush.GpBrush)
+	var lineBrush *win.GpLineGradient
+	p1 := &win.GpPoint{0, 0}
+	p2 := &win.GpPoint{280, 20}
+	err = win.GdipCreateLineBrush(p1, p2, 0xFFFF0000, 0xB00000FF, win.WrapModeTile, &lineBrush)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	/*
-		var brush *win.GpSolidFill
-		err = win.GdipCreateSolidFill(0x900000FF, &brush)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer win.GdipDeleteBrush(&brush.GpBrush)
-		var lineBrush *win.GpLineGradient
-		p1 := &win.GpPoint{0, 0}
-		p2 := &win.GpPoint{280, 20}
-		err = win.GdipCreateLineBrush(p1, p2, 0xFFFF0000, 0xB00000FF, win.WrapModeTile, &lineBrush)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	defer win.GdipDeleteBrush(&lineBrush.GpBrush)
+	err = win.GdipSetTextRenderingHint(graphics, win.TextRenderingHintAntiAliasGridFit)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-		defer win.GdipDeleteBrush(&lineBrush.GpBrush)
-		err = win.GdipSetTextRenderingHint(graphics, win.TextRenderingHintAntiAliasGridFit)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	var fontFamily *win.GpFontFamily
+	err = win.GdipCreateFontFamilyFromName("宋体", nil, &fontFamily)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteFontFamily(fontFamily)
 
-		var fontFamily *win.GpFontFamily
-		err = win.GdipCreateFontFamilyFromName("宋体", nil, &fontFamily)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer win.GdipDeleteFontFamily(fontFamily)
+	var format *win.GpStringFormat
+	err = win.GdipCreateStringFormat(0, win.LANG_NEUTRAL, &format)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteStringFormat(format)
 
-		var format *win.GpStringFormat
-		err = win.GdipCreateStringFormat(0, win.LANG_NEUTRAL, &format)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer win.GdipDeleteStringFormat(format)
+	err = win.GdipSetStringFormatAlign(format, win.StringAlignmentNear)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-		err = win.GdipSetStringFormatAlign(format, win.StringAlignmentNear)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	var font *win.GpFont
+	err = win.GdipCreateFont(fontFamily, 14, 0, win.UnitPoint, &font)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteFont(font)
 
-		var font *win.GpFont
-		err = win.GdipCreateFont(fontFamily, 14, 0, win.UnitPoint, &font)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer win.GdipDeleteFont(font)
+	rect := win.RectF{20, 20, 280, 20}
+	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &brush.GpBrush)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-		rect := win.RectF{20, 20, 280, 20}
-		err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &brush.GpBrush)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	rect = win.RectF{20, 60, 280, 20}
+	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-		rect = win.RectF{20, 60, 280, 20}
-		err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
-		if err != nil {
-			fmt.Println(err)
-			return
-		} //*/
+	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
+	if err != nil {
+		fmt.Println(err)
+		return
+	} //*/
 
 	clsid, _ := win.GetEncoderClsid("image/png")
 	if clsid == nil {

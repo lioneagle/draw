@@ -89,6 +89,7 @@ func CreateCompatibleBitmap(hdc HDC, width, height uint32) HBITMAP {
 	return HBITMAP(ret)
 }
 
+// https://msdn.microsoft.com/zh-cn/library/windows/desktop/dd144925(d=printer,v=vs.85).aspx
 func GetStockObject(fnObject int32) HGDIOBJ {
 	ret, _, _ := procGetStockObject.Call(
 		uintptr(fnObject))
