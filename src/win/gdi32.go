@@ -20,6 +20,8 @@ var (
 	procDeleteObject = libgdi32.NewProc("DeleteObject")
 
 	procCreateCompatibleBitmap = libgdi32.NewProc("CreateCompatibleBitmap")
+
+	procGetStockObject = libgdi32.NewProc("GetStockObject")
 )
 
 func CreateDC(lpszDriver, lpszDevice, lpszOutput *uint16, lpInitData *DEVMODE) HDC {
@@ -59,6 +61,18 @@ func GetObject(hgdiobj HGDIOBJ, cbBuffer uintptr, lpvObject unsafe.Pointer) int3
 	return int32(ret)
 }
 
+func SelectObject(hdc HDC, hgdiobj HGDIOBJ) HGDIOBJ {
+	ret, _, _ := procSelectObject.Call(
+		uintptr(hdc),
+		uintptr(hgdiobj))
+
+	if ret == 0 {
+		panic("SelectObject failed")
+	}
+
+	return HGDIOBJ(ret)
+}
+
 func DeleteObject(hgdiobj HGDIOBJ) bool {
 	ret, _, _ := procDeleteObject.Call(
 		uintptr(hgdiobj))
@@ -75,14 +89,9 @@ func CreateCompatibleBitmap(hdc HDC, width, height uint32) HBITMAP {
 	return HBITMAP(ret)
 }
 
-func SelectObject(hdc HDC, hgdiobj HGDIOBJ) HGDIOBJ {
-	ret, _, _ := procSelectObject.Call(
-		uintptr(hdc),
-		uintptr(hgdiobj))
-
-	if ret == 0 {
-		panic("SelectObject failed")
-	}
+func GetStockObject(fnObject int32) HGDIOBJ {
+	ret, _, _ := procGetStockObject.Call(
+		uintptr(fnObject))
 
 	return HGDIOBJ(ret)
 }

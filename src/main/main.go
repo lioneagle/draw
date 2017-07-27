@@ -29,123 +29,17 @@ func main() {
 	}
 	defer win.GdiplusShutdown()
 
-	clsid, _ := win.GetEncoderClsid("image/png")
-	if clsid == nil {
-		fmt.Println("GetEncoderClsid failed")
-	} else {
-		fmt.Println("clsid =", *clsid)
-	}
-
 	hdc := win.CreateCompatibleDC(0)
 	defer win.DeleteDC(hdc)
-
-	var graphics *win.GpGraphics
-	err = win.GdipCreateFromHDC(hdc, &graphics)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteGraphics(graphics)
 
 	hbmp := win.CreateCompatibleBitmap(hdc, 600, 600)
 	defer win.DeleteObject(win.HGDIOBJ(hbmp))
 
-	oldbmp := win.SelectObject(hdc, win.HGDIOBJ(hbmp))
-	defer win.SelectObject(hdc, oldbmp)
+	win.SelectObject(hdc, win.HGDIOBJ(hbmp))
 
-	var brush *win.GpSolidFill
-	err = win.GdipCreateSolidFill(0x900000FF, &brush)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteBrush(&brush.GpBrush)
+	rect1 := win.RECT{0, 0, 600, 600}
 
-	var brushWhite *win.GpSolidFill
-	err = win.GdipCreateSolidFill(0xFFFFFFFF, &brushWhite)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteBrush(&brushWhite.GpBrush)
-
-	var lineBrush *win.GpLineGradient
-	p1 := &win.GpPoint{0, 0}
-	p2 := &win.GpPoint{280, 20}
-	err = win.GdipCreateLineBrush(p1, p2, 0xFFFF0000, 0xB00000FF, win.WrapModeTile, &lineBrush)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteBrush(&lineBrush.GpBrush)
-
-	err = win.GdipSetTextRenderingHint(graphics, win.TextRenderingHintAntiAliasGridFit)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeAntiAlias)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	var fontFamily *win.GpFontFamily
-	err = win.GdipCreateFontFamilyFromName("宋体", nil, &fontFamily)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteFontFamily(fontFamily)
-
-	var format *win.GpStringFormat
-	err = win.GdipCreateStringFormat(0, win.LANG_NEUTRAL, &format)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteStringFormat(format)
-
-	err = win.GdipSetStringFormatAlign(format, win.StringAlignmentNear)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	var font *win.GpFont
-	err = win.GdipCreateFont(fontFamily, 14, 0, win.UnitPoint, &font)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteFont(font)
-
-	err = win.GdipFillRectangle(graphics, &brushWhite.GpBrush, 0, 0, 600, 600)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	rect := win.RectF{20, 20, 280, 20}
-	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &brush.GpBrush)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	rect = win.RectF{20, 60, 280, 20}
-	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	win.FillRect(hdc, &rect1, (win.HBRUSH)(win.GetStockObject(win.WHITE_BRUSH)))
 
 	var bitmap *win.GpBitmap
 	err = win.GdipCreateBitmapFromHBITMAP(hbmp, 0, &bitmap)
@@ -154,6 +48,122 @@ func main() {
 		return
 	}
 	defer win.GdipDisposeImage(&bitmap.GpImage)
+
+	//oldbmp := win.SelectObject(hdc, win.HGDIOBJ(hbmp))
+	//defer win.SelectObject(hdc, oldbmp)
+
+	var brushWhite *win.GpSolidFill
+	err = win.GdipCreateSolidFill(0x09FFFFFF, &brushWhite)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteBrush(&brushWhite.GpBrush)
+	/*
+
+	 */
+
+	var graphics *win.GpGraphics
+	//err = win.GdipCreateFromHDC(hdc, &graphics)
+	err = win.GdipGetImageGraphicsContext(&bitmap.GpImage, &graphics)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteGraphics(graphics)
+
+	err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeAntiAlias)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = win.GdipFillRectangle(graphics, &brushWhite.GpBrush, 0, 0, 600, 600)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	/*
+		var brush *win.GpSolidFill
+		err = win.GdipCreateSolidFill(0x900000FF, &brush)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeleteBrush(&brush.GpBrush)
+		var lineBrush *win.GpLineGradient
+		p1 := &win.GpPoint{0, 0}
+		p2 := &win.GpPoint{280, 20}
+		err = win.GdipCreateLineBrush(p1, p2, 0xFFFF0000, 0xB00000FF, win.WrapModeTile, &lineBrush)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		defer win.GdipDeleteBrush(&lineBrush.GpBrush)
+		err = win.GdipSetTextRenderingHint(graphics, win.TextRenderingHintAntiAliasGridFit)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		var fontFamily *win.GpFontFamily
+		err = win.GdipCreateFontFamilyFromName("宋体", nil, &fontFamily)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeleteFontFamily(fontFamily)
+
+		var format *win.GpStringFormat
+		err = win.GdipCreateStringFormat(0, win.LANG_NEUTRAL, &format)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeleteStringFormat(format)
+
+		err = win.GdipSetStringFormatAlign(format, win.StringAlignmentNear)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		var font *win.GpFont
+		err = win.GdipCreateFont(fontFamily, 14, 0, win.UnitPoint, &font)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeleteFont(font)
+
+		rect := win.RectF{20, 20, 280, 20}
+		err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &brush.GpBrush)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		rect = win.RectF{20, 60, 280, 20}
+		err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &lineBrush.GpBrush)
+		if err != nil {
+			fmt.Println(err)
+			return
+		} //*/
+
+	clsid, _ := win.GetEncoderClsid("image/png")
+	if clsid == nil {
+		fmt.Println("GetEncoderClsid failed")
+	} else {
+		fmt.Println("clsid =", *clsid)
+	}
 
 	win.GdipSaveImageToFile(&bitmap.GpImage, "test1.png", clsid, nil)
 
