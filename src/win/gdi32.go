@@ -11,10 +11,14 @@ var (
 	//libmsimg32 = syscall.NewLazyDLL("msimg32.dll")
 
 	// Functions
-	procCreateDC               = libgdi32.NewProc("CreateDCW")
-	procCreateCompatibleDC     = libgdi32.NewProc("CreateCompatibleDC")
-	procDeleteDC               = libgdi32.NewProc("DeleteDC")
-	procGetObject              = libgdi32.NewProc("GetObjectW")
+	procCreateDC           = libgdi32.NewProc("CreateDCW")
+	procCreateCompatibleDC = libgdi32.NewProc("CreateCompatibleDC")
+	procDeleteDC           = libgdi32.NewProc("DeleteDC")
+
+	procGetObject    = libgdi32.NewProc("GetObjectW")
+	procSelectObject = libgdi32.NewProc("SelectObject")
+	procDeleteObject = libgdi32.NewProc("DeleteObject")
+
 	procCreateCompatibleBitmap = libgdi32.NewProc("CreateCompatibleBitmap")
 )
 
@@ -55,6 +59,13 @@ func GetObject(hgdiobj HGDIOBJ, cbBuffer uintptr, lpvObject unsafe.Pointer) int3
 	return int32(ret)
 }
 
+func DeleteObject(hgdiobj HGDIOBJ) bool {
+	ret, _, _ := procDeleteObject.Call(
+		uintptr(hgdiobj))
+
+	return ret != 0
+}
+
 func CreateCompatibleBitmap(hdc HDC, width, height uint32) HBITMAP {
 	ret, _, _ := procCreateCompatibleBitmap.Call(
 		uintptr(hdc),
@@ -62,4 +73,16 @@ func CreateCompatibleBitmap(hdc HDC, width, height uint32) HBITMAP {
 		uintptr(height))
 
 	return HBITMAP(ret)
+}
+
+func SelectObject(hdc HDC, hgdiobj HGDIOBJ) HGDIOBJ {
+	ret, _, _ := procSelectObject.Call(
+		uintptr(hdc),
+		uintptr(hgdiobj))
+
+	if ret == 0 {
+		panic("SelectObject failed")
+	}
+
+	return HGDIOBJ(ret)
 }

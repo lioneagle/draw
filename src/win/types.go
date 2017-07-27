@@ -1,7 +1,10 @@
 package win
 
 import (
+	//"fmt"
+	"reflect"
 	"syscall"
+	"unicode/utf16"
 	"unsafe"
 )
 
@@ -220,10 +223,30 @@ type (
 	ULONG           uint32
 	HPALETTE        HANDLE
 	LANGID          uint16
+	WORD            uint16
 )
 
-func StringToPWCHAR(str string) *WCHAR {
+func StringToWcharPtr(str string) *WCHAR {
 	return (*WCHAR)(syscall.StringToUTF16Ptr(str))
+}
+
+func WcharPtrToString(p *WCHAR) string {
+	p1 := (*uint16)(unsafe.Pointer(p))
+	var length uintptr = 0
+	for {
+		if *p1 == 0 {
+			break
+		}
+		p1 = (*uint16)(unsafe.Pointer(uintptr(unsafe.Pointer(p1)) + 2))
+		length++
+	}
+
+	var str []uint16
+	((*reflect.SliceHeader)(unsafe.Pointer(&str))).Data = uintptr(unsafe.Pointer(p))
+	((*reflect.SliceHeader)(unsafe.Pointer(&str))).Len = int(length)
+	((*reflect.SliceHeader)(unsafe.Pointer(&str))).Cap = int(length)
+
+	return string(utf16.Decode(str))
 }
 
 // GDI
@@ -285,6 +308,35 @@ type GUID struct {
 
 type CLSID GUID
 
+// http://msdn.microsoft.com/en-us/library/windows/desktop/dd183376.aspx
+type BITMAPINFOHEADER struct {
+	BiSize          uint32
+	BiWidth         int32
+	BiHeight        int32
+	BiPlanes        uint16
+	BiBitCount      uint16
+	BiCompression   uint32
+	BiSizeImage     uint32
+	BiXPelsPerMeter int32
+	BiYPelsPerMeter int32
+	BiClrUsed       uint32
+	BiClrImportant  uint32
+}
+
+// http://msdn.microsoft.com/en-us/library/windows/desktop/dd162938.aspx
+type RGBQUAD struct {
+	RgbBlue     byte
+	RgbGreen    byte
+	RgbRed      byte
+	RgbReserved byte
+}
+
+// http://msdn.microsoft.com/en-us/library/windows/desktop/dd183375.aspx
+type BITMAPINFO struct {
+	BmiHeader BITMAPINFOHEADER
+	BmiColors *RGBQUAD
+}
+
 // Gdiplus
 type GpStatus int32
 
@@ -304,7 +356,9 @@ type GdiplusStartupOutput struct {
 
 type GpGraphics struct{}
 type GpImage struct{}
-type GpBitmap GpImage
+type GpBitmap struct {
+	GpImage
+}
 
 type ARGB uint32
 type REAL float32
@@ -312,11 +366,11 @@ type REAL float32
 type ImageCodecInfo struct {
 	Clsid             CLSID
 	FormatID          GUID
-	CodecName         uintptr
-	DllName           uintptr
-	FormatDescription uintptr
-	FilenameExtension uintptr
-	MimeType          *byte
+	CodecName         *WCHAR
+	DllName           *WCHAR
+	FormatDescription *WCHAR
+	FilenameExtension *WCHAR
+	MimeType          *WCHAR
 	Flags             uint32
 	Version           uint32
 	SigCount          uint32
@@ -360,7 +414,7 @@ type GpFontCollection struct{}
 type GpFontFamily struct{}
 type GpFont struct{}
 
-type Unit int32
+type GpUnit int32
 
 type StringAlignment int32
 
@@ -373,3 +427,5 @@ type RectF struct {
 	Width  REAL
 	Hright REAL
 }
+
+type GpPen struct{}

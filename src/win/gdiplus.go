@@ -3,7 +3,7 @@ package win
 import (
 	"errors"
 	"fmt"
-	//"reflect"
+	"reflect"
 	"syscall"
 	"unsafe"
 )
@@ -90,20 +90,26 @@ var (
 	procGdiplusStartup  = libgdiplus.NewProc("GdiplusStartup")
 	procGdiplusShutdown = libgdiplus.NewProc("GdiplusShutdown")
 
+	// Grahics Functions
 	procGdipCreateFromHDC        = libgdiplus.NewProc("GdipCreateFromHDC")
 	procGdipDeleteGraphics       = libgdiplus.NewProc("GdipDeleteGraphics")
 	procGdipSetTextRenderingHint = libgdiplus.NewProc("GdipSetTextRenderingHint")
 	procGdipSetSmoothingMode     = libgdiplus.NewProc("GdipSetSmoothingMode")
+	procGdipDrawRectangle        = libgdiplus.NewProc("GdipDrawRectangle")
+	procGdipFillRectangle        = libgdiplus.NewProc("GdipFillRectangle")
 
+	// Bitmap Functions
 	procGdipCreateBitmapFromHBITMAP = libgdiplus.NewProc("GdipCreateBitmapFromHBITMAP")
 	procCreateHBITMAPFromBitmap     = libgdiplus.NewProc("GdipCreateHBITMAPFromBitmap")
 
+	// Image Functions
 	procGdipGetImageGraphicsContext = libgdiplus.NewProc("GdipGetImageGraphicsContext")
 	procGdipGetImageEncodersSize    = libgdiplus.NewProc("GdipGetImageEncodersSize")
 	procGdipGetImageEncoders        = libgdiplus.NewProc("GdipGetImageEncoders")
 	procGdipSaveImageToFile         = libgdiplus.NewProc("GdipSaveImageToFile")
 	procGdipDisposeImage            = libgdiplus.NewProc("GdipDisposeImage")
 
+	// SolidBrush Functions
 	procGdipCloneBrush        = libgdiplus.NewProc("GdipCloneBrush")
 	procGdipDeleteBrush       = libgdiplus.NewProc("GdipDeleteBrush")
 	procGdipGetBrushType      = libgdiplus.NewProc("GdipGetBrushType")
@@ -111,19 +117,27 @@ var (
 	procGdipSetSolidFillColor = libgdiplus.NewProc("GdipSetSolidFillColor")
 	procGdipGetSolidFillColor = libgdiplus.NewProc("GdipGetSolidFillColor")
 
+	// LinearGradientBrush Functions
 	procGdipCreateLineBrush = libgdiplus.NewProc("GdipCreateLineBrush")
 
+	// FontFamily Functions
 	procGdipCreateFontFamilyFromName = libgdiplus.NewProc("GdipCreateFontFamilyFromName")
 	procGdipDeleteFontFamily         = libgdiplus.NewProc("GdipDeleteFontFamily")
 
+	// Font functions
 	procGdipCreateFont = libgdiplus.NewProc("GdipCreateFont")
 	procGdipDeleteFont = libgdiplus.NewProc("GdipDeleteFont")
 
+	// String Format Functions
 	procGdipCreateStringFormat   = libgdiplus.NewProc("GdipCreateStringFormat")
 	procGdipDeleteStringFormat   = libgdiplus.NewProc("GdipDeleteStringFormat")
 	procGdipSetStringFormatAlign = libgdiplus.NewProc("GdipSetStringFormatAlign")
 
+	// Text Functions
 	procGdipDrawString = libgdiplus.NewProc("GdipDrawString")
+
+	// Pen Functions
+	procGdipCreatePen1 = libgdiplus.NewProc("GdipCreatePen1")
 )
 
 func GdiplusStartup(input *GdiplusStartupInput, output *GdiplusStartupOutput) error {
@@ -182,6 +196,36 @@ func GdipSetSmoothingMode(graphics *GpGraphics, smoothingMode SmoothingMode) err
 
 	if GpStatus(ret) != Ok {
 		return errors.New(fmt.Sprintf("GdipSetSmoothingMode failed with status '%s'", GpStatus(ret)))
+	}
+	return nil
+}
+
+func GdipDrawRectangle(graphics *GpGraphics, pen *GpPen, x, y, width, height REAL) error {
+	ret, _, _ := procGdipDrawRectangle.Call(
+		uintptr(unsafe.Pointer(graphics)),
+		uintptr(unsafe.Pointer(pen)),
+		uintptr(x),
+		uintptr(y),
+		uintptr(width),
+		uintptr(height))
+
+	if GpStatus(ret) != Ok {
+		return errors.New(fmt.Sprintf("GdipDrawRectangle failed with status '%s'", GpStatus(ret)))
+	}
+	return nil
+}
+
+func GdipFillRectangle(graphics *GpGraphics, brush *GpBrush, x, y, width, height REAL) error {
+	ret, _, _ := procGdipFillRectangle.Call(
+		uintptr(unsafe.Pointer(graphics)),
+		uintptr(unsafe.Pointer(brush)),
+		uintptr(x),
+		uintptr(y),
+		uintptr(width),
+		uintptr(height))
+
+	if GpStatus(ret) != Ok {
+		return errors.New(fmt.Sprintf("GdipFillRectangle failed with status '%s'", GpStatus(ret)))
 	}
 	return nil
 }
@@ -248,7 +292,7 @@ func GdipGetImageEncoders(numEncoders UINT, size UINT, decoders *ImageCodecInfo)
 func GdipSaveImageToFile(image *GpImage, filename string, clsidEncoder *CLSID, encoderParams *EncoderParameters) error {
 	ret, _, _ := procGdipSaveImageToFile.Call(
 		uintptr(unsafe.Pointer(image)),
-		uintptr(unsafe.Pointer(StringToPWCHAR(filename))),
+		uintptr(unsafe.Pointer(StringToWcharPtr(filename))),
 		uintptr(unsafe.Pointer(clsidEncoder)),
 		uintptr(unsafe.Pointer(encoderParams)))
 
@@ -350,7 +394,7 @@ func GdipCreateLineBrush(point1, point2 *GpPoint, color1, color2 ARGB, wrapMode 
 
 func GdipCreateFontFamilyFromName(name string, fontCollection *GpFontCollection, fontFamily **GpFontFamily) error {
 	ret, _, _ := procGdipCreateFontFamilyFromName.Call(
-		uintptr(unsafe.Pointer(StringToPWCHAR(name))),
+		uintptr(unsafe.Pointer(StringToWcharPtr(name))),
 		uintptr(unsafe.Pointer(fontCollection)),
 		uintptr(unsafe.Pointer(fontFamily)))
 
@@ -370,7 +414,7 @@ func GdipDeleteFontFamily(fontFamily *GpFontFamily) error {
 	return nil
 }
 
-func GdipCreateFont(fontFamily *GpFontFamily, emSize REAL, style int32, unit Unit, font **GpFont) error {
+func GdipCreateFont(fontFamily *GpFontFamily, emSize REAL, style int32, unit GpUnit, font **GpFont) error {
 	ret, _, _ := procGdipCreateFont.Call(
 		uintptr(unsafe.Pointer(fontFamily)),
 		uintptr(emSize),
@@ -431,7 +475,7 @@ func GdipDrawString(graphics *GpGraphics, str string, length int32, font *GpFont
 	stringFormat *GpStringFormat, brush *GpBrush) error {
 	ret, _, _ := procGdipDrawString.Call(
 		uintptr(unsafe.Pointer(graphics)),
-		uintptr(unsafe.Pointer(StringToPWCHAR(str))),
+		uintptr(unsafe.Pointer(StringToWcharPtr(str))),
 		uintptr(length),
 		uintptr(unsafe.Pointer(font)),
 		uintptr(unsafe.Pointer(layoutRect)),
@@ -442,4 +486,53 @@ func GdipDrawString(graphics *GpGraphics, str string, length int32, font *GpFont
 		return errors.New(fmt.Sprintf("GdipDrawString failed with status '%s'", GpStatus(ret)))
 	}
 	return nil
+}
+
+func GdipCreatePen1(color ARGB, width REAL, unit GpUnit, pen **GpPen) error {
+	ret, _, _ := procGdipDrawString.Call(
+		uintptr(color),
+		uintptr(width),
+		uintptr(unit),
+		uintptr(unsafe.Pointer(pen)))
+
+	if GpStatus(ret) != Ok {
+		return errors.New(fmt.Sprintf("GdipCreatePen1 failed with status '%s'", GpStatus(ret)))
+	}
+	return nil
+}
+
+func GetEncoderClsid(format string) (clsid *CLSID, index int) {
+	var num UINT = 0
+	var size UINT = 0
+
+	clsid = &CLSID{}
+
+	err := GdipGetImageEncodersSize(&num, &size)
+	if err != nil {
+		fmt.Println("GetEncoderClsid:: call GdipGetImageEncodersSize failed, err = %s", err.Error())
+		return nil, -1
+	}
+
+	buf := make([]byte, size)
+	err = GdipGetImageEncoders(num, size, (*ImageCodecInfo)(unsafe.Pointer(&buf[0])))
+	if err != nil {
+		fmt.Println("GetEncoderClsid:: call GdipGetImageEncoders failed, err = %s", err.Error())
+		return nil, -1
+	}
+
+	var imageCodecInfo []ImageCodecInfo
+
+	((*reflect.SliceHeader)(unsafe.Pointer(&imageCodecInfo))).Data = uintptr(unsafe.Pointer(&buf[0]))
+	((*reflect.SliceHeader)(unsafe.Pointer(&imageCodecInfo))).Len = int(num)
+	((*reflect.SliceHeader)(unsafe.Pointer(&imageCodecInfo))).Cap = int(num)
+
+	for i := UINT(0); i < num; i++ {
+		str := WcharPtrToString(imageCodecInfo[i].MimeType)
+		//fmt.Println("type =", str)
+		if str == format {
+			*clsid = imageCodecInfo[i].Clsid
+			return clsid, int(i)
+		}
+	}
+	return nil, -1
 }

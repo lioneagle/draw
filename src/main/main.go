@@ -5,10 +5,17 @@ import (
 	//"os"
 	"fmt"
 	"sequence"
+	"syscall"
 	"win"
 )
 
 func main() {
+
+	fmt.Println("w1 =", syscall.StringToUTF16("123abc"))
+
+	w1 := win.StringToWcharPtr("123abc")
+	s1 := win.WcharPtrToString(w1)
+	fmt.Println("s1 =", s1)
 
 	var input win.GdiplusStartupInput
 	var output win.GdiplusStartupOutput
@@ -22,6 +29,13 @@ func main() {
 	}
 	defer win.GdiplusShutdown()
 
+	clsid, _ := win.GetEncoderClsid("image/png")
+	if clsid == nil {
+		fmt.Println("GetEncoderClsid failed")
+	} else {
+		fmt.Println("clsid =", *clsid)
+	}
+
 	hdc := win.CreateCompatibleDC(0)
 	defer win.DeleteDC(hdc)
 
@@ -33,6 +47,12 @@ func main() {
 	}
 	defer win.GdipDeleteGraphics(graphics)
 
+	hbmp := win.CreateCompatibleBitmap(hdc, 600, 600)
+	defer win.DeleteObject(win.HGDIOBJ(hbmp))
+
+	oldbmp := win.SelectObject(hdc, win.HGDIOBJ(hbmp))
+	defer win.SelectObject(hdc, oldbmp)
+
 	var brush *win.GpSolidFill
 	err = win.GdipCreateSolidFill(0x900000FF, &brush)
 	if err != nil {
@@ -40,6 +60,14 @@ func main() {
 		return
 	}
 	defer win.GdipDeleteBrush(&brush.GpBrush)
+
+	var brushWhite *win.GpSolidFill
+	err = win.GdipCreateSolidFill(0xFFFFFFFF, &brushWhite)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDeleteBrush(&brushWhite.GpBrush)
 
 	var lineBrush *win.GpLineGradient
 	p1 := &win.GpPoint{0, 0}
@@ -93,6 +121,12 @@ func main() {
 	}
 	defer win.GdipDeleteFont(font)
 
+	err = win.GdipFillRectangle(graphics, &brushWhite.GpBrush, 0, 0, 600, 600)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	rect := win.RectF{20, 20, 280, 20}
 	err = win.GdipDrawString(graphics, "测试：I love Win32 and GdiplusFlat", -1, font, &rect, nil, &brush.GpBrush)
 	if err != nil {
@@ -112,6 +146,16 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	var bitmap *win.GpBitmap
+	err = win.GdipCreateBitmapFromHBITMAP(hbmp, 0, &bitmap)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer win.GdipDisposeImage(&bitmap.GpImage)
+
+	win.GdipSaveImageToFile(&bitmap.GpImage, "test1.png", clsid, nil)
 
 	return
 

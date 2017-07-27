@@ -29,6 +29,7 @@ test_temp
 
 *.test
 *.prof
+*.png
 
 #sublime
 *.sublime-project

@@ -97,11 +97,11 @@ const (
 )
 
 const (
-	UnitWorld      Unit = 0
-	UnitDisplay    Unit = 1
-	UnitPixel      Unit = 2
-	UnitPoint      Unit = 3
-	UnitInch       Unit = 4
-	UnitDocument   Unit = 5
-	UnitMillimeter Unit = 6
+	UnitWorld      GpUnit = 0
+	UnitDisplay    GpUnit = 1
+	UnitPixel      GpUnit = 2
+	UnitPoint      GpUnit = 3
+	UnitInch       GpUnit = 4
+	UnitDocument   GpUnit = 5
+	UnitMillimeter GpUnit = 6
 )
