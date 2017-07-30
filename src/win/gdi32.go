@@ -22,6 +22,8 @@ var (
 	procCreateCompatibleBitmap = libgdi32.NewProc("CreateCompatibleBitmap")
 
 	procGetStockObject = libgdi32.NewProc("GetStockObject")
+
+	procExtCreatePen = libgdi32.NewProc("ExtCreatePen")
 )
 
 func CreateDC(lpszDriver, lpszDevice, lpszOutput *uint16, lpInitData *DEVMODE) HDC {
@@ -95,4 +97,15 @@ func GetStockObject(fnObject int32) HGDIOBJ {
 		uintptr(fnObject))
 
 	return HGDIOBJ(ret)
+}
+
+func ExtCreatePen(dwPenStyle, dwWidth uint32, lplb *LOGBRUSH, dwStyleCount uint32, lpStyle *uint32) HPEN {
+	ret, _, _ := procExtCreatePen.Call(
+		uintptr(dwPenStyle),
+		uintptr(dwWidth),
+		uintptr(unsafe.Pointer(lplb)),
+		uintptr(dwStyleCount),
+		uintptr(unsafe.Pointer(lpStyle)))
+
+	return HPEN(ret)
 }

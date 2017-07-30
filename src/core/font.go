@@ -2,8 +2,8 @@ package core
 
 type Font struct {
 	Name            string
-	FrontColor      *Color
-	BackgroundColor *Color
+	FrontColor      Color
+	BackgroundColor Color
 	Style           int
 	Size            int
 }

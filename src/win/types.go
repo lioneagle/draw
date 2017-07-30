@@ -260,6 +260,13 @@ type RECT struct {
 	Left, Top, Right, Bottom int32
 }
 
+// http://msdn.microsoft.com/en-us/library/windows/desktop/dd145035.aspx
+type LOGBRUSH struct {
+	LbStyle uint32
+	LbColor COLORREF
+	LbHatch uintptr
+}
+
 // http://msdn.microsoft.com/en-us/library/windows/desktop/dd183565.aspx
 type DEVMODE struct {
 	DmDeviceName       [CCHDEVICENAME]uint16

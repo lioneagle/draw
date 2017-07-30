@@ -66,9 +66,9 @@ func (this *Note) Type() int   { return ACTION_TYPE_NOTE }
 func (this *Note) GetRow() int { return this.Row }
 
 type SequenceConfig struct {
-	TextBackgroundColor   *core.Color
-	CrossNeighborMsgColor *core.Color
-	MainObjectFillColor   *core.Color
+	TextBackgroundColor   core.Color
+	CrossNeighborMsgColor core.Color
+	MainObjectFillColor   core.Color
 	ObjectFont            *core.Font
 	MsgFont               *core.Font
 	NoteFont              *core.Font
@@ -77,8 +77,8 @@ type SequenceConfig struct {
 func NewSequenceConfig() *SequenceConfig {
 	s := &SequenceConfig{}
 
-	s.TextBackgroundColor = &core.Color{Red: 232, Green: 248, Blue: 247}
-	s.CrossNeighborMsgColor = &core.Color{Red: 68, Green: 170, Blue: 205}
+	s.TextBackgroundColor = core.RGB(232, 248, 247)
+	s.CrossNeighborMsgColor = core.RGB(68, 170, 205)
 	s.MainObjectFillColor = core.ColorGold
 
 	s.ObjectFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
@@ -180,7 +180,7 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", width=1, height=0.5];\r\n", v.Id, v.Name))
 		} else {
 			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];\r\n",
-				v.Id, v.Name, config.MainObjectFillColor.String()))
+				v.Id, v.Name, config.MainObjectFillColor.RGBString()))
 		}
 
 		steps, _ := m[v.Name]
@@ -223,14 +223,14 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 						from.Id, data.Id, from.Id+1, data.Id, data.Name))
 				} else {
 					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\"];\r\n",
-						from.Id, data.Id, from.Id+1, data.Id, data.Name, config.CrossNeighborMsgColor.String()))
+						from.Id, data.Id, from.Id+1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString()))
 					for k = from.Id + 1; k < to.Id; k++ {
 						if k != (to.Id - 1) {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];\r\n",
-								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.String()))
+								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString()))
 						} else {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];\r\n",
-								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.String()))
+								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString()))
 						}
 					}
 				}
@@ -241,14 +241,14 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 						from.Id, data.Id, from.Id-1, data.Id, data.Name))
 				} else {
 					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", ];\r\n",
-						from.Id, data.Id, from.Id-1, data.Id, data.Name, config.CrossNeighborMsgColor.String()))
+						from.Id, data.Id, from.Id-1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString()))
 					for k = from.Id - 1; k > to.Id; k-- {
 						if k != (to.Id + 1) {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];\r\n",
-								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.String()))
+								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString()))
 						} else {
 							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];\r\n",
-								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.String()))
+								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString()))
 						}
 					}
 				}
