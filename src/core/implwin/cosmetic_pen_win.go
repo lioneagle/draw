@@ -5,13 +5,13 @@ import (
 	"win"
 )
 
-type CosmeticPen struct {
+type CosmeticPenWin struct {
 	hPen  win.HPEN
 	style core.PenStyle
 	color core.Color
 }
 
-func NewCosmeticPen(style core.PenStyle, color core.Color) (*CosmeticPen, error) {
+func NewCosmeticPenWin(style core.PenStyle, color core.Color) (*CosmeticPenWin, error) {
 	lb := &win.LOGBRUSH{LbStyle: win.BS_SOLID, LbColor: win.COLORREF(color)}
 
 	style.Type = core.PEN_TYPE_COSMETIC
@@ -22,10 +22,10 @@ func NewCosmeticPen(style core.PenStyle, color core.Color) (*CosmeticPen, error)
 		return nil, core.NewError("ExtCreatePen failed")
 	}
 
-	return &CosmeticPen{hPen: hPen, style: style, color: color}, nil
+	return &CosmeticPenWin{hPen: hPen, style: style, color: color}, nil
 }
 
-func (this *CosmeticPen) Dispose() {
+func (this *CosmeticPenWin) Dispose() {
 	if this.hPen != 0 {
 		win.DeleteObject(win.HGDIOBJ(this.hPen))
 
@@ -33,18 +33,18 @@ func (this *CosmeticPen) Dispose() {
 	}
 }
 
-func (this *CosmeticPen) handle() win.HPEN {
+func (this *CosmeticPenWin) handle() win.HPEN {
 	return this.hPen
 }
 
-func (this *CosmeticPen) Style() core.PenStyle {
+func (this *CosmeticPenWin) Style() core.PenStyle {
 	return this.style
 }
 
-func (this *CosmeticPen) Color() core.Color {
+func (this *CosmeticPenWin) Color() core.Color {
 	return this.color
 }
 
-func (this *CosmeticPen) Width() int {
+func (this *CosmeticPenWin) Width() int {
 	return 1
 }

@@ -9,7 +9,7 @@ type nullPenWin struct {
 	hPen win.HPEN
 }
 
-func newNullPen() *nullPenWin {
+func newNullPenWin() *nullPenWin {
 	lb := &win.LOGBRUSH{LbStyle: win.BS_NULL}
 
 	hPen := win.ExtCreatePen(win.PS_COSMETIC|win.PS_NULL, 1, lb, 0, nil)
@@ -40,8 +40,8 @@ func (p *nullPenWin) Width() int {
 	return 0
 }
 
-var nullPenSingleton core.Pen = newNullPen()
+var nullPenWinSingleton core.Pen = newNullPenWin()
 
-func NullPen() core.Pen {
-	return nullPenSingleton
+func NullPenWin() core.Pen {
+	return nullPenWinSingleton
 }
