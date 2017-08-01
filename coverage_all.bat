@@ -13,7 +13,7 @@ if exist .\test_temp\coverage.out  del .\test_temp\coverage.out
 if exist .\test_temp\coverage.html del .\test_temp\coverage.html
 
 	
-for /f %%d in ('go list ./...^|findstr -v "github"') do (
+for /f %%d in ('go list ./...^|findstr -v "github"'^|findstr -v "vendor"') do (
 	if exist .\test_temp\coverage.out (
 		go test -coverprofile=./test_temp/coverage1.out %%d
 		if exist .\test_temp\coverage1.out (
