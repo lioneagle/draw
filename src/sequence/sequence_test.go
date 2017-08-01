@@ -8,8 +8,8 @@ import (
 )
 
 func TestSequenceBuildDot(t *testing.T) {
-	prefix := "TestSequenceBuildDot
-	
+	prefix := "TestSequenceBuildDot"
+
 	seq := &Sequence{}
 
 	config := NewSequenceConfig()
@@ -42,10 +42,10 @@ func TestSequenceBuildDot(t *testing.T) {
 
 	seq.BuildDotFile(dotOutput, config)
 	if !core.FileEqual(dotStandard, dotOutput) {
-		t.Errorf("%s: ouput file \"%s\" is not equal standard file \"%s\"",prefix, filepath.Base(dotOutput), filepath.Base(dotStandard))
+		t.Errorf("%s: ouput file \"%s\" is not equal standard file \"%s\"", prefix, filepath.Base(dotOutput), filepath.Base(dotStandard))
 	}
 
 	if !core.FileEqual(pngStandard, pngOutput) {
-		t.Errorf("%s: ouput file \"%s\" is not equal standard file \"%s\"",prefix, filepath.Base(pngOutput), filepath.Base(pngStandard))
+		t.Errorf("%s: ouput file \"%s\" is not equal standard file \"%s\"", prefix, filepath.Base(pngOutput), filepath.Base(pngStandard))
 	}
 }
