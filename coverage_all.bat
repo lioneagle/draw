@@ -26,6 +26,16 @@ for /f %%d in ('go list ./...^|findstr -v "github"') do (
 	)
 )
 
+go tool cover -func=./test_temp/coverage.out -o ./test_temp/coverage.txt
+findstr "total" .\test_temp\coverage.txt >> .\test_temp\coverage2.txt
+del .\test_temp\coverage.txt
+
+for /f "tokens=1,2,3 delims=	" %%a in (.\test_temp\coverage2.txt) do (
+    echo %%a %%c of statements
+)
+del .\test_temp\coverage2.txt
+
+
 go tool cover -html=./test_temp/coverage.out -o ./test_temp/coverage.html
 if exist .\test_temp\coverage.html (
 	.\test_temp\coverage.html
