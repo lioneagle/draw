@@ -12,3 +12,8 @@ type Writer struct {
 func (this *Writer) Write(format string, args ...interface{}) {
 	this.buf.WriteString(fmt.Sprintf(format, args...))
 }
+
+func (this *Writer) Writeln(format string, args ...interface{}) {
+	this.buf.WriteString(fmt.Sprintf(format, args...))
+	this.buf.WriteString(fmt.Sprintln())
+}
