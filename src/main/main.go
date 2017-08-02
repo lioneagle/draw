@@ -173,25 +173,25 @@ func main() {
 	seq := &sequence.Sequence{}
 	config := sequence.NewSequenceConfig()
 
-	objectFont := config.ObjectFont
+	participantFont := config.ParticipantFont
 	messageFont := config.MsgFont
 	noteFont := config.NoteFont
 
-	seq.AddObject(&sequence.Object{Name: "UE", Font: objectFont})
-	seq.AddObject(&sequence.Object{Name: "ZXUN B200", Font: objectFont, IsMain: true})
-	seq.AddObject(&sequence.Object{Name: "I/S-CSCF", Font: objectFont})
-	seq.AddObject(&sequence.Object{Name: "SCC AS", Font: objectFont})
+	seq.AddParticipant(&sequence.Participant{Name: "UE", Font: participantFont})
+	seq.AddParticipant(&sequence.Participant{Name: "ZXUN B200", Font: participantFont, IsFocus: true})
+	seq.AddParticipant(&sequence.Participant{Name: "I/S-CSCF", Font: participantFont})
+	seq.AddParticipant(&sequence.Participant{Name: "SCC AS", Font: participantFont})
 
-	seq.AddMessage(&sequence.Message{FromObj: "UE", ToObj: "ZXUN B200", Name: "INVITE", Font: messageFont, Seq: 1})
-	seq.AddMessage(&sequence.Message{FromObj: "ZXUN B200", ToObj: "I/S-CSCF", Name: "INVITE", Font: messageFont, Seq: 2})
-	seq.AddMessage(&sequence.Message{FromObj: "I/S-CSCF", ToObj: "SCC AS", Name: "INVITE", Font: messageFont, Seq: 2})
-	seq.AddMessage(&sequence.Message{FromObj: "SCC AS", ToObj: "I/S-CSCF", Name: "INVITE 180", Font: messageFont, Seq: 3})
-	seq.AddMessage(&sequence.Message{FromObj: "I/S-CSCF", ToObj: "ZXUN B200", Name: "INVITE 180", Font: messageFont, Seq: 3})
-	seq.AddMessage(&sequence.Message{FromObj: "ZXUN B200", ToObj: "UE", Name: "INVITE 180", Font: messageFont, Seq: 4})
-	seq.AddMessage(&sequence.Message{FromObj: "SCC AS", ToObj: "UE", Name: "test1", Font: messageFont, Seq: 4})
-	seq.AddMessage(&sequence.Message{FromObj: "UE", ToObj: "SCC AS", Name: "test2", Font: messageFont, Seq: 4})
+	seq.AddMessage(&sequence.Message{From: "UE", To: "ZXUN B200", Name: "INVITE", Font: messageFont, Seq: 1})
+	seq.AddMessage(&sequence.Message{From: "ZXUN B200", To: "I/S-CSCF", Name: "INVITE", Font: messageFont, Seq: 2})
+	seq.AddMessage(&sequence.Message{From: "I/S-CSCF", To: "SCC AS", Name: "INVITE", Font: messageFont, Seq: 2})
+	seq.AddMessage(&sequence.Message{From: "SCC AS", To: "I/S-CSCF", Name: "INVITE 180", Font: messageFont, Seq: 3})
+	seq.AddMessage(&sequence.Message{From: "I/S-CSCF", To: "ZXUN B200", Name: "INVITE 180", Font: messageFont, Seq: 3})
+	seq.AddMessage(&sequence.Message{From: "ZXUN B200", To: "UE", Name: "INVITE 180", Font: messageFont, Seq: 4})
+	seq.AddMessage(&sequence.Message{From: "SCC AS", To: "UE", Name: "test1", Font: messageFont, Seq: 4})
+	seq.AddMessage(&sequence.Message{From: "UE", To: "SCC AS", Name: "test2", Font: messageFont, Seq: 4})
 
-	seq.AddNote(&sequence.Note{Obj: "ZXUN B200", Name: "A", Font: noteFont})
+	seq.AddNote(&sequence.Note{OverParticipant: "ZXUN B200", Name: "A", Font: noteFont})
 
 	//fmt.Print("dot =\n", dot)
 

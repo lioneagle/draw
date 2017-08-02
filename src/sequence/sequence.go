@@ -24,11 +24,11 @@ type Steps struct {
 	Data []*Step
 }
 
-type Object struct {
-	Name   string
-	Id     int
-	Font   *core.Font
-	IsMain bool
+type Participant struct {
+	Name    string
+	Id      int
+	Font    *core.Font
+	IsFocus bool
 }
 
 const (
@@ -42,36 +42,36 @@ type Action interface {
 }
 
 type Message struct {
-	FromObj string
-	ToObj   string
-	Name    string
-	Font    *core.Font
-	Row     int
-	Seq     int
-	Id      int
+	From string
+	To   string
+	Name string
+	Font *core.Font
+	Row  int
+	Seq  int
+	Id   int
 }
 
 func (this *Message) Type() int   { return ACTION_TYPE_MESSAGE }
 func (this *Message) GetRow() int { return this.Row }
 
 type Note struct {
-	Obj  string
-	Name string
-	Font *core.Font
-	Id   int
-	Row  int
+	OverParticipant string
+	Name            string
+	Font            *core.Font
+	Id              int
+	Row             int
 }
 
 func (this *Note) Type() int   { return ACTION_TYPE_NOTE }
 func (this *Note) GetRow() int { return this.Row }
 
 type SequenceConfig struct {
-	TextBackgroundColor   core.Color
-	CrossNeighborMsgColor core.Color
-	MainObjectFillColor   core.Color
-	ObjectFont            *core.Font
-	MsgFont               *core.Font
-	NoteFont              *core.Font
+	TextBackgroundColor       core.Color
+	CrossNeighborMsgColor     core.Color
+	FocusParticipantFillColor core.Color
+	ParticipantFont           *core.Font
+	MsgFont                   *core.Font
+	NoteFont                  *core.Font
 }
 
 func NewSequenceConfig() *SequenceConfig {
@@ -79,9 +79,9 @@ func NewSequenceConfig() *SequenceConfig {
 
 	s.TextBackgroundColor = core.RGB(232, 248, 247)
 	s.CrossNeighborMsgColor = core.RGB(68, 170, 205)
-	s.MainObjectFillColor = core.ColorGold
+	s.FocusParticipantFillColor = core.ColorGold
 
-	s.ObjectFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
+	s.ParticipantFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
 	s.MsgFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
 	s.NoteFont = core.NewFont("Arial", core.FONT_STYLE_BOLD, 9)
 
@@ -89,19 +89,19 @@ func NewSequenceConfig() *SequenceConfig {
 }
 
 type Sequence struct {
-	objects []*Object
-	actions []Action
+	participants []*Participant
+	actions      []Action
 }
 
-func (this *Sequence) AddObject(obj *Object) {
-	v := this.findObject(obj.Name)
+func (this *Sequence) AddParticipant(obj *Participant) {
+	v := this.findParticipant(obj.Name)
 	if v == nil {
-		this.objects = append(this.objects, obj)
+		this.participants = append(this.participants, obj)
 	}
 }
 
-func (this *Sequence) findObject(name string) *Object {
-	for _, v := range this.objects {
+func (this *Sequence) findParticipant(name string) *Participant {
+	for _, v := range this.participants {
 		if v.Name == name {
 			return v
 		}
@@ -157,8 +157,8 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	`
 
 	buf.WriteString(fmt.Sprintf(format,
-		config.ObjectFont.GetDotName(),
-		config.ObjectFont.Size,
+		config.ParticipantFont.GetDotName(),
+		config.ParticipantFont.Size,
 		config.MsgFont.GetDotName(),
 		config.MsgFont.Size))
 
@@ -167,20 +167,20 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	config.MsgFont.GetDotName(), config.MsgFont.Size)
 	)*/
 
-	for i, v := range this.objects {
+	for i, v := range this.participants {
 		v.Id = i
 	}
 
-	for _, v := range this.objects {
+	for _, v := range this.participants {
 		buf.WriteString("\r\n")
 		buf.WriteString("    {\r\n")
 		buf.WriteString("        rank=\"same\";\r\n")
 		buf.WriteString("        edge[style=\"solid\"];\r\n")
-		if !v.IsMain {
+		if !v.IsFocus {
 			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", width=1, height=0.5];\r\n", v.Id, v.Name))
 		} else {
 			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];\r\n",
-				v.Id, v.Name, config.MainObjectFillColor.RGBString()))
+				v.Id, v.Name, config.FocusParticipantFillColor.RGBString()))
 		}
 
 		steps, _ := m[v.Name]
@@ -212,8 +212,8 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	for _, a := range this.actions {
 		switch data := a.(type) {
 		case *Message:
-			from := this.findObject(data.FromObj)
-			to := this.findObject(data.ToObj)
+			from := this.findParticipant(data.From)
+			to := this.findParticipant(data.To)
 
 			var k int
 
@@ -265,13 +265,13 @@ func (this *Sequence) getSteps() (map[string]*Steps, error) {
 	m := make(map[string]*Steps)
 	totalSteps := this.getTotalStepNum()
 
-	for _, v := range this.objects {
+	for _, v := range this.participants {
 		steps := &Steps{}
 		id := 0
 		for _, a := range this.actions {
 			switch data := a.(type) {
 			case *Note:
-				if data.Obj == v.Name {
+				if data.OverParticipant == v.Name {
 					data.Id = id
 					steps.Data = append(steps.Data, &Step{Name: data.Name, Font: data.Font, Type: STEP_TYPE_NOTE})
 					id += 2
