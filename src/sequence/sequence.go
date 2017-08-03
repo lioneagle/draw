@@ -1,7 +1,6 @@
 package sequence
 
 import (
-	"bytes"
 	"core"
 	"fmt"
 	"os"
@@ -145,7 +144,7 @@ func (this *Sequence) BuildDotFile(filename string, config *SequenceConfig) {
 }
 
 func (this *Sequence) BuildDot(config *SequenceConfig) string {
-	var buf bytes.Buffer
+	var buf core.Writer
 
 	m, _ := this.getSteps()
 
@@ -156,11 +155,11 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	
 	`
 
-	buf.WriteString(fmt.Sprintf(format,
+	buf.Write(format,
 		config.ParticipantFont.GetDotName(),
 		config.ParticipantFont.Size,
 		config.MsgFont.GetDotName(),
-		config.MsgFont.Size))
+		config.MsgFont.Size)
 
 	/*buf.WriteString(fmt.Sprintf(format,
 	config.ObjectFont.GetDotName(), config.ObjectFont.Size,
@@ -172,42 +171,42 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	}
 
 	for _, v := range this.participants {
-		buf.WriteString("\r\n")
-		buf.WriteString("    {\r\n")
-		buf.WriteString("        rank=\"same\";\r\n")
-		buf.WriteString("        edge[style=\"solid\"];\r\n")
+		buf.Writeln("")
+		buf.Writeln("    {")
+		buf.Writeln("        rank=\"same\";")
+		buf.Writeln("        edge[style=\"solid\"];")
 		if !v.IsFocus {
-			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", width=1, height=0.5];\r\n", v.Id, v.Name))
+			buf.Writeln("        obj%d[shape=\"box\", label=\"%s\", width=1, height=0.5];", v.Id, v.Name)
 		} else {
-			buf.WriteString(fmt.Sprintf("        obj%d[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];\r\n",
-				v.Id, v.Name, config.FocusParticipantFillColor.RGBString()))
+			buf.Writeln("        obj%d[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];",
+				v.Id, v.Name, config.FocusParticipantFillColor.RGBString())
 		}
 
 		steps, _ := m[v.Name]
 		for j, s := range steps.Data {
 			if j == (len(steps.Data) - 1) {
-				buf.WriteString(fmt.Sprintf("        obj%d_step_%d[shape=\"box\", width=0.5, label=\"\"];\r\n", v.Id, s.Id))
+				buf.Writeln("        obj%d_step_%d[shape=\"box\", width=0.5, label=\"\"];", v.Id, s.Id)
 				break
 			}
 			if s.Type == STEP_TYPE_NOTE {
-				buf.WriteString(fmt.Sprintf("        obj%d_note_%d[shape=\"circle\", label=\"%s\", width=0.51];\r\n", v.Id, s.Id, s.Name))
+				buf.Writeln("        obj%d_note_%d[shape=\"circle\", label=\"%s\", width=0.51];", v.Id, s.Id, s.Name)
 			}
 		}
 
-		buf.WriteString(fmt.Sprintf("        obj%d", v.Id))
+		buf.Write("        obj%d", v.Id)
 
 		for _, s := range steps.Data {
 			if s.Type == STEP_TYPE_NOTE {
-				buf.WriteString(fmt.Sprintf(" -> obj%d_note_%d", v.Id, s.Id))
+				buf.Write(" -> obj%d_note_%d", v.Id, s.Id)
 			} else {
-				buf.WriteString(fmt.Sprintf(" -> obj%d_step_%d", v.Id, s.Id))
+				buf.Write(" -> obj%d_step_%d", v.Id, s.Id)
 			}
 		}
 
-		buf.WriteString(";\r\n    }\r\n")
+		buf.Write(";\r\n    }\r\n")
 	}
 
-	buf.WriteString("\r\n")
+	buf.Write("\r\n")
 
 	for _, a := range this.actions {
 		switch data := a.(type) {
@@ -219,36 +218,36 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 
 			if to.Id > from.Id {
 				if to.Id == (from.Id + 1) {
-					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];\r\n",
-						from.Id, data.Id, from.Id+1, data.Id, data.Name))
+					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];",
+						from.Id, data.Id, from.Id+1, data.Id, data.Name)
 				} else {
-					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\"];\r\n",
-						from.Id, data.Id, from.Id+1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString()))
+					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\"];",
+						from.Id, data.Id, from.Id+1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString())
 					for k = from.Id + 1; k < to.Id; k++ {
 						if k != (to.Id - 1) {
-							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];\r\n",
-								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString()))
+							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];",
+								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString())
 						} else {
-							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];\r\n",
-								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString()))
+							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];",
+								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString())
 						}
 					}
 				}
 
 			} else {
 				if to.Id == (from.Id - 1) {
-					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];\r\n",
-						from.Id, data.Id, from.Id-1, data.Id, data.Name))
+					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];",
+						from.Id, data.Id, from.Id-1, data.Id, data.Name)
 				} else {
-					buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", ];\r\n",
-						from.Id, data.Id, from.Id-1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString()))
+					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", ];",
+						from.Id, data.Id, from.Id-1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString())
 					for k = from.Id - 1; k > to.Id; k-- {
 						if k != (to.Id + 1) {
-							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];\r\n",
-								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString()))
+							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];",
+								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString())
 						} else {
-							buf.WriteString(fmt.Sprintf("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];\r\n",
-								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString()))
+							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];",
+								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString())
 						}
 					}
 				}
@@ -256,7 +255,7 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 		}
 	}
 
-	buf.WriteString("}\r\n")
+	buf.Writeln("}")
 
 	return buf.String()
 }
