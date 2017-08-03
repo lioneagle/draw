@@ -1,7 +1,7 @@
 @echo off
 setlocal
-if exist coverage.bat goto ok
-echo coverage.bat must be run from its folder
+if exist coverage_all.bat goto ok
+echo coverage_all.bat must be run from its folder
 goto end
 : ok
 
@@ -14,7 +14,7 @@ if exist .\test_temp\package.html del .\test_temp\package.txt
 
 go list ./... | findstr -v "main github vendor" >> .\test_temp\package.txt
 
-for /f %%a in ('go list ./...^|findstr -v "github"'^|findstr -v "vendor"') do (
+for /f %%a in (.\test_temp\package.txt) do (
 	if exist .\test_temp\coverage.out (
 		go test -coverprofile=./test_temp/coverage1.out %%a
 		if exist .\test_temp\coverage1.out (
