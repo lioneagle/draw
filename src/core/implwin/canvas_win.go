@@ -2,6 +2,7 @@ package implwin
 
 import (
 	"core"
+	"fmt"
 	"win"
 )
 
@@ -13,10 +14,20 @@ type CanvasWin struct {
 	doNotDispose bool
 }
 
-func (this *CanvasWin) SetHdc(hdc win.HDC)    { this.hdc = hdc }
-func (this *CanvasWin) SetHwnd(hwnd win.HWND) { this.hwnd = hwnd }
+func (this *CanvasWin) HDC() win.HDC {
+	return this.hdc
+}
 
-func NewCanvasWinFromHDC(hdc win.HDC) (core.Canvas, error) {
+func NewCanvasWin() (*CanvasWin, error) {
+	hdc := win.CreateCompatibleDC(0)
+	if hdc == 0 {
+		return nil, core.NewError("CreateCompatibleDC failed")
+	}
+
+	return (&CanvasWin{hdc: hdc}).init()
+}
+
+func NewCanvasWinFromHDC(hdc win.HDC) (*CanvasWin, error) {
 	if hdc == 0 {
 		return nil, core.NewError("invalid hdc")
 	}
@@ -24,7 +35,7 @@ func NewCanvasWinFromHDC(hdc win.HDC) (core.Canvas, error) {
 	return (&CanvasWin{hdc: hdc, doNotDispose: true}).init()
 }
 
-func (this *CanvasWin) init() (core.Canvas, error) {
+func (this *CanvasWin) init() (*CanvasWin, error) {
 	this.dpix = int(win.GetDeviceCaps(this.hdc, win.LOGPIXELSX))
 	this.dpiy = int(win.GetDeviceCaps(this.hdc, win.LOGPIXELSY))
 
@@ -51,21 +62,87 @@ func (this *CanvasWin) Dispose() {
 		} else {
 			win.ReleaseDC(this.hwnd, this.hdc)
 		}
-
 		this.hdc = 0
 	}
 }
 
-func (this *CanvasWin) DrawLine(from, to core.Point, pen core.Pen) error {
+func (this *CanvasWin) DrawLine(pen core.Pen, from, to core.Point) error {
+	fmt.Println("here1")
+	if !win.MoveToEx(this.hdc, int32(from.X), int32(from.Y), nil) {
+		return core.NewError("MoveToEx failed")
+	}
+	win_pen, _ := pen.(PenWin)
+	return this.withPen(win_pen, func() error {
+		fmt.Println("here2")
+		if !win.LineTo(this.hdc, int32(to.X), int32(to.Y)) {
+			return core.NewError("LineTo failed")
+		}
+		return nil
+	})
+}
+
+func (this *CanvasWin) DrawImage(image core.Image, location core.Point) error {
 	return nil
 }
 
-func (this *CanvasWin) DrawRectangle(rect core.Rectangle, pen core.Pen) error {
+func (this *CanvasWin) PaintImage(image core.Image, f func() error) error {
 	return nil
 }
 
-func (this *CanvasWin) FillRectangle() {
+func (this *CanvasWin) DrawRectangle(pen core.Pen, rect core.Rectangle) error {
+	return this.drawRectangle(NullBrushWin(), pen, rect, 0)
+}
 
+func (this *CanvasWin) FillRectangle(brush core.Brush, rect core.Rectangle) error {
+	return this.drawRectangle(brush, NullPenWin(), rect, 1)
+}
+
+func (this *CanvasWin) drawRectangle(brush core.Brush, pen core.Pen, rect core.Rectangle, sizeCorrection int) error {
+	win_pen, _ := pen.(PenWin)
+	win_brush, _ := brush.(BrushWin)
+	return this.withBrushAndPen(win_brush, win_pen, func() error {
+		if !win.Rectangle(
+			this.hdc,
+			int32(rect.X),
+			int32(rect.Y),
+			int32(rect.X+rect.Width+sizeCorrection),
+			int32(rect.Y+rect.Height+sizeCorrection)) {
+			return core.NewError("drawRectangle failed")
+		}
+		return nil
+	})
+}
+
+func (this *CanvasWin) DrawEllipse(pen core.Pen, rect core.Rectangle) error {
+	return this.drawEllipse(NullBrushWin(), pen, rect, 0)
+}
+
+func (this *CanvasWin) FillEllipse(brush core.Brush, rect core.Rectangle) error {
+	return this.drawEllipse(brush, NullPenWin(), rect, 1)
+}
+
+func (this *CanvasWin) drawEllipse(brush core.Brush, pen core.Pen, rect core.Rectangle, sizeCorrection int) error {
+	win_pen, _ := pen.(PenWin)
+	win_brush, _ := brush.(BrushWin)
+	return this.withBrushAndPen(win_brush, win_pen, func() error {
+		if !win.Ellipse(
+			this.hdc,
+			int32(rect.X),
+			int32(rect.Y),
+			int32(rect.X+rect.Width+sizeCorrection),
+			int32(rect.Y+rect.Height+sizeCorrection)) {
+			return core.NewError("drawRectangle failed")
+		}
+		return nil
+	})
+}
+
+func (this *CanvasWin) DrawCircle(pen core.Pen, center core.Point, radius int) error {
+	return this.drawEllipse(NullBrushWin(), pen, core.Rectangle{center.X - radius, center.Y - radius, 2 * radius, 2 * radius}, 0)
+}
+
+func (this *CanvasWin) FillCircle(brush core.Brush, center core.Point, radius int) error {
+	return this.drawEllipse(brush, NullPenWin(), core.Rectangle{center.X - radius, center.Y - radius, 2 * radius, 2 * radius}, 1)
 }
 
 func (this *CanvasWin) withGdiObj(handle win.HGDIOBJ, f func() error) error {

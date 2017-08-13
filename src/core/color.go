@@ -7,7 +7,7 @@ import (
 type Color uint32
 
 func RGB(red, green, blue byte) Color {
-	return Color(uint32(red) | uint32(green)<<8 | uint32(blue)<<16 | 0xff000000)
+	return Color(uint32(red) | uint32(green)<<8 | uint32(blue)<<16)
 }
 
 func ARGB(alpha, red, green, blue byte) Color {

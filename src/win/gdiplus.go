@@ -93,6 +93,8 @@ var (
 	// Grahics Functions
 	procGdipCreateFromHDC        = libgdiplus.NewProc("GdipCreateFromHDC")
 	procGdipDeleteGraphics       = libgdiplus.NewProc("GdipDeleteGraphics")
+	procGdipGetDC                = libgdiplus.NewProc("GdipGetDC")
+	procGdipReleaseDC            = libgdiplus.NewProc("GdipReleaseDC")
 	procGdipSetTextRenderingHint = libgdiplus.NewProc("GdipSetTextRenderingHint")
 	procGdipSetSmoothingMode     = libgdiplus.NewProc("GdipSetSmoothingMode")
 	procGdipDrawRectangle        = libgdiplus.NewProc("GdipDrawRectangle")
@@ -138,6 +140,7 @@ var (
 
 	// Pen Functions
 	procGdipCreatePen1 = libgdiplus.NewProc("GdipCreatePen1")
+	procGdipDeletePen  = libgdiplus.NewProc("GdipDeletePen")
 )
 
 func GdiplusStartup(input *GdiplusStartupInput, output *GdiplusStartupOutput) error {
@@ -174,6 +177,28 @@ func GdipDeleteGraphics(graphics *GpGraphics) error {
 
 	if GpStatus(ret) != Ok {
 		return errors.New(fmt.Sprintf("GdipDeleteGraphics failed with status '%s'", GpStatus(ret)))
+	}
+	return nil
+}
+
+func GdipGetDC(graphics *GpGraphics, hdc *HDC) error {
+	ret, _, _ := procGdipGetDC.Call(
+		uintptr(unsafe.Pointer(graphics)),
+		uintptr(unsafe.Pointer(hdc)))
+
+	if GpStatus(ret) != Ok {
+		return errors.New(fmt.Sprintf("GdipGetDC failed with status '%s'", GpStatus(ret)))
+	}
+	return nil
+}
+
+func GdipReleaseDC(graphics *GpGraphics, hdc HDC) error {
+	ret, _, _ := procGdipReleaseDC.Call(
+		uintptr(unsafe.Pointer(graphics)),
+		uintptr(hdc))
+
+	if GpStatus(ret) != Ok {
+		return errors.New(fmt.Sprintf("GdipReleaseDC failed with status '%s'", GpStatus(ret)))
 	}
 	return nil
 }
@@ -489,7 +514,7 @@ func GdipDrawString(graphics *GpGraphics, str string, length int32, font *GpFont
 }
 
 func GdipCreatePen1(color ARGB, width REAL, unit GpUnit, pen **GpPen) error {
-	ret, _, _ := procGdipDrawString.Call(
+	ret, _, _ := procGdipCreatePen1.Call(
 		uintptr(color),
 		uintptr(width),
 		uintptr(unit),
@@ -497,6 +522,16 @@ func GdipCreatePen1(color ARGB, width REAL, unit GpUnit, pen **GpPen) error {
 
 	if GpStatus(ret) != Ok {
 		return errors.New(fmt.Sprintf("GdipCreatePen1 failed with status '%s'", GpStatus(ret)))
+	}
+	return nil
+}
+
+func GdipDeletePen(pen *GpPen) error {
+	ret, _, _ := procGdipDeletePen.Call(
+		uintptr(unsafe.Pointer(pen)))
+
+	if GpStatus(ret) != Ok {
+		return errors.New(fmt.Sprintf("GdipDeletePen failed with status '%s'", GpStatus(ret)))
 	}
 	return nil
 }

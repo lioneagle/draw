@@ -20,28 +20,27 @@ func newNullPenWin() *nullPenWin {
 	return &nullPenWin{hPen: hPen}
 }
 
-func (p *nullPenWin) Dispose() {
-	if p.hPen != 0 {
-		win.DeleteObject(win.HGDIOBJ(p.hPen))
-
-		p.hPen = 0
+func (this *nullPenWin) Dispose() {
+	if this.hPen != 0 {
+		win.DeleteObject(win.HGDIOBJ(this.hPen))
+		this.hPen = 0
 	}
 }
 
-func (p *nullPenWin) handle() win.HPEN {
-	return p.hPen
+func (this *nullPenWin) handle() win.HPEN {
+	return this.hPen
 }
 
-func (p *nullPenWin) Style() core.PenStyle {
+func (this *nullPenWin) Style() core.PenStyle {
 	return core.PenStyle{}
 }
 
-func (p *nullPenWin) Width() int {
+func (this *nullPenWin) Width() int {
 	return 0
 }
 
-var nullPenWinSingleton core.Pen = newNullPenWin()
+var nullPenWinSingleton *nullPenWin = newNullPenWin()
 
-func NullPenWin() core.Pen {
+func NullPenWin() *nullPenWin {
 	return nullPenWinSingleton
 }

@@ -35,7 +35,6 @@ func NewGeometricPenWin(style core.PenStyle, width int, brush BrushWin) (*Geomet
 func (this *GeometricPenWin) Dispose() {
 	if this.hPen != 0 {
 		win.DeleteObject(win.HGDIOBJ(this.hPen))
-
 		this.hPen = 0
 	}
 }

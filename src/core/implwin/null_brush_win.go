@@ -1,7 +1,6 @@
 package implwin
 
 import (
-	"core"
 	"win"
 )
 
@@ -23,7 +22,6 @@ func newNullBrushWin() *nullBrushWin {
 func (this *nullBrushWin) Dispose() {
 	if this.hBrush != 0 {
 		win.DeleteObject(win.HGDIOBJ(this.hBrush))
-
 		this.hBrush = 0
 	}
 }
@@ -36,8 +34,8 @@ func (this *nullBrushWin) logbrush() *win.LOGBRUSH {
 	return &win.LOGBRUSH{LbStyle: win.BS_NULL}
 }
 
-var nullBrushWinSingleton core.Brush = newNullBrushWin()
+var nullBrushWinSingleton *nullBrushWin = newNullBrushWin()
 
-func NullBrushWin() core.Brush {
+func NullBrushWin() *nullBrushWin {
 	return nullBrushWinSingleton
 }

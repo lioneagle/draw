@@ -17,14 +17,21 @@ var (
 	procGetObject              = libgdi32.NewProc("GetObjectW")
 	procSelectObject           = libgdi32.NewProc("SelectObject")
 	procDeleteObject           = libgdi32.NewProc("DeleteObject")
+	procCreateBitmap           = libgdi32.NewProc("CreateBitmap")
 	procCreateCompatibleBitmap = libgdi32.NewProc("CreateCompatibleBitmap")
 	procGetStockObject         = libgdi32.NewProc("GetStockObject")
+	procCreatePen              = libgdi32.NewProc("CreatePen")
 	procExtCreatePen           = libgdi32.NewProc("ExtCreatePen")
+	procCreateSolidBrush       = libgdi32.NewProc("CreateSolidBrush")
 	procCreateBrushIndirect    = libgdi32.NewProc("CreateBrushIndirect")
 	procGetDeviceCaps          = libgdi32.NewProc("GetDeviceCaps")
 	procSetBkMode              = libgdi32.NewProc("SetBkMode")
 	procSetStretchBltMode      = libgdi32.NewProc("SetStretchBltMode")
 	procSetBrushOrgEx          = libgdi32.NewProc("SetBrushOrgEx")
+	procMoveToEx               = libgdi32.NewProc("MoveToEx")
+	procLineTo                 = libgdi32.NewProc("LineTo")
+	procRectangle              = libgdi32.NewProc("Rectangle")
+	procEllipse                = libgdi32.NewProc("Ellipse")
 )
 
 func CreateDC(lpszDriver, lpszDevice, lpszOutput *uint16, lpInitData *DEVMODE) HDC {
@@ -83,6 +90,17 @@ func DeleteObject(hgdiobj HGDIOBJ) bool {
 	return ret != 0
 }
 
+func CreateBitmap(nWidth, nHeight int32, cPlanes, cBitsPerPel uint32, lpvBits unsafe.Pointer) HBITMAP {
+	ret, _, _ := procCreateBitmap.Call(
+		uintptr(nWidth),
+		uintptr(nHeight),
+		uintptr(cPlanes),
+		uintptr(cBitsPerPel),
+		uintptr(lpvBits))
+
+	return HBITMAP(ret)
+}
+
 func CreateCompatibleBitmap(hdc HDC, width, height uint32) HBITMAP {
 	ret, _, _ := procCreateCompatibleBitmap.Call(
 		uintptr(hdc),
@@ -100,6 +118,15 @@ func GetStockObject(fnObject int32) HGDIOBJ {
 	return HGDIOBJ(ret)
 }
 
+func CreatePen(PenStyle, Width int32, color COLORREF) HPEN {
+	ret, _, _ := procCreatePen.Call(
+		uintptr(PenStyle),
+		uintptr(Width),
+		uintptr(color))
+
+	return HPEN(ret)
+}
+
 func ExtCreatePen(dwPenStyle, dwWidth uint32, lplb *LOGBRUSH, dwStyleCount uint32, lpStyle *uint32) HPEN {
 	ret, _, _ := procExtCreatePen.Call(
 		uintptr(dwPenStyle),
@@ -109,6 +136,13 @@ func ExtCreatePen(dwPenStyle, dwWidth uint32, lplb *LOGBRUSH, dwStyleCount uint3
 		uintptr(unsafe.Pointer(lpStyle)))
 
 	return HPEN(ret)
+}
+
+func CreateSolidBrush(color COLORREF) HBRUSH {
+	ret, _, _ := procCreateSolidBrush.Call(
+		uintptr(color))
+
+	return HBRUSH(ret)
 }
 
 func CreateBrushIndirect(lplb *LOGBRUSH) HBRUSH {
@@ -152,6 +186,47 @@ func SetBrushOrgEx(hdc HDC, nXOrg, nYOrg int32, lppt *POINT) bool {
 		uintptr(nXOrg),
 		uintptr(nYOrg),
 		uintptr(unsafe.Pointer(lppt)))
+
+	return ret != 0
+}
+
+func MoveToEx(hdc HDC, x, y int32, lpPoint *POINT) bool {
+	ret, _, _ := procMoveToEx.Call(
+		uintptr(hdc),
+		uintptr(x),
+		uintptr(y),
+		uintptr(unsafe.Pointer(lpPoint)))
+
+	return ret != 0
+}
+
+func LineTo(hdc HDC, X, Y int32) bool {
+	ret, _, _ := procLineTo.Call(
+		uintptr(hdc),
+		uintptr(X),
+		uintptr(Y))
+
+	return ret != 0
+}
+
+func Rectangle(hdc HDC, LeftRect, TopRect, RightRect, BottomRect int32) bool {
+	ret, _, _ := procRectangle.Call(
+		uintptr(hdc),
+		uintptr(LeftRect),
+		uintptr(TopRect),
+		uintptr(RightRect),
+		uintptr(BottomRect))
+
+	return ret != 0
+}
+
+func Ellipse(hdc HDC, nLeftRect, nTopRect, nRightRect, nBottomRect int32) bool {
+	ret, _, _ := procEllipse.Call(
+		uintptr(hdc),
+		uintptr(nLeftRect),
+		uintptr(nTopRect),
+		uintptr(nRightRect),
+		uintptr(nBottomRect))
 
 	return ret != 0
 }

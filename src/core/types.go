@@ -11,3 +11,8 @@ type Rectangle struct {
 	Width  int
 	Height int
 }
+
+type Size struct {
+	Width  int
+	Height int
+}

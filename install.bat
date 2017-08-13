@@ -16,15 +16,18 @@ if "%2" == "" (
 )
 
 if %GOARCH% == amd64 (
+	echo installing 64-bit ......
 	go install %1
 
 	if exist .\bin\%1.exe (
 		copy .\bin\%1.exe  %output64%
 		del .\bin\%1.exe
 		
-		set GOARCH=386
-		go build -o=%output32% %1
-		set GOARCH=amd64
+		echo building 32-bit ......
+		
+		rem set GOARCH=386
+		rem go build -o=%output32% %1
+		rem set GOARCH=amd64
 	)
 
 ) else (
