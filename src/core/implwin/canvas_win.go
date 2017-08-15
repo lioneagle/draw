@@ -2,7 +2,7 @@ package implwin
 
 import (
 	"core"
-	"fmt"
+	//"fmt"
 	"win"
 )
 
@@ -67,13 +67,11 @@ func (this *CanvasWin) Dispose() {
 }
 
 func (this *CanvasWin) DrawLine(pen core.Pen, from, to core.Point) error {
-	fmt.Println("here1")
 	if !win.MoveToEx(this.hdc, int32(from.X), int32(from.Y), nil) {
 		return core.NewError("MoveToEx failed")
 	}
 	win_pen, _ := pen.(PenWin)
 	return this.withPen(win_pen, func() error {
-		fmt.Println("here2")
 		if !win.LineTo(this.hdc, int32(to.X), int32(to.Y)) {
 			return core.NewError("LineTo failed")
 		}

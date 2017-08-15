@@ -2,17 +2,19 @@ package core
 
 type RectangleGraphic struct {
 	rect   Rectangle
-	style  RectangStyle
+	Style  RectangStyle
 	childs []Graphic
 	parent Graphic
 	text   *Text
 }
 
 type RectangStyle struct {
-	level     int
-	drawBound bool
-	doFill    bool
-	fillColor bool
+	Level       int
+	DrawBorder  bool
+	DoFill      bool
+	FillColor   Color
+	BorderColor Color
+	BorderWidth int
 }
 
 func (this *RectangleGraphic) Draw(canvas Canvas) error {
@@ -32,5 +34,5 @@ func (this *RectangleGraphic) Parent() Graphic {
 }
 
 func (this *RectangleGraphic) Level(child Graphic) int {
-	return this.style.level
+	return this.Style.Level
 }

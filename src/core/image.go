@@ -6,5 +6,5 @@ type Image interface {
 	Draw(canvas Canvas) error
 	Dispose()
 	Size() Size
-	SaveToFile(filename, format string)
+	SaveToFile(filename, format string) error
 }

@@ -44,12 +44,21 @@ func main() {
 	fmt.Printf("hdc = 0x%08x\n", hdc)
 
 	//hbmp := win.CreateCompatibleBitmap(hdc, 600, 600)
-	hbmp := win.CreateBitmap(600, 600, 1, 32, nil)
+	/*hbmp := win.CreateBitmap(600, 600, 1, 32, nil)
 	defer win.DeleteObject(win.HGDIOBJ(hbmp))
 
-	win.SelectObject(hdc, win.HGDIOBJ(hbmp))
+	win.SelectObject(hdc, win.HGDIOBJ(hbmp))*/
 
-	win.FillRect(hdc, &win.RECT{0, 0, 600, 600}, (win.HBRUSH)(win.GetStockObject(win.WHITE_BRUSH)))
+	bmp, err := implwin.NewBitmap(core.Size{600, 600})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer bmp.Dispose()
+
+	bmp.BeginPaint(canvas)
+
+	//win.FillRect(hdc, &win.RECT{0, 0, 600, 600}, (win.HBRUSH)(win.GetStockObject(win.WHITE_BRUSH)))
 
 	brush_0, err := implwin.NewSolidColorBrush(core.ColorWhite)
 	if err != nil {
@@ -98,85 +107,54 @@ func main() {
 
 	 */
 
-	var graphics *win.GpGraphics
-	err = win.GdipCreateFromHDC(hdc, &graphics)
-	//err = win.GdipGetImageGraphicsContext(&bitmap.GpImage, &graphics)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteGraphics(graphics)
-
-	//win.SelectObject(hdc, win.HGDIOBJ(hbmp))
-	//win.FillRect(hdc, &win.RECT{400, 400, 500, 500}, (win.HBRUSH)(win.GetStockObject(win.BLACK_BRUSH)))
-
-	//oldbmp := win.SelectObject(hdc, win.HGDIOBJ(hbmp))
-	//defer win.SelectObject(hdc, oldbmp)
-
-	var brush1 *win.GpSolidFill
-	err = win.GdipCreateSolidFill(0xFF000000, &brush1)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeleteBrush(&brush1.GpBrush)
-
-	var pen1 *win.GpPen
-	err = win.GdipCreatePen1(0xFFFF0000, 1, 2, &pen1)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDeletePen(pen1)
-
-	//*
-	var hdc2 win.HDC
-	err = win.GdipGetDC(graphics, &hdc2)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Printf("hdc2 = 0x%08x\n", hdc2)
-	hbrush_xx := win.CreateSolidBrush(0x00123456)
-	if hbrush_xx == 0 {
-		fmt.Println("CreateSolidBrush failed")
-		return
-	}
-	defer win.DeleteObject(win.HGDIOBJ(hbrush_xx))
-
-	oldHandle := win.SelectObject(hdc, win.HGDIOBJ(hbrush_xx))
-
-	//win.FillRect(hdc2, &win.RECT{100, 100, 200, 200}, hbrush_xx)
-
-	win.SelectObject(hdc, oldHandle)
-
-	//win.FillRect(hdc2, &win.RECT{100, 100, 200, 200}, (win.HBRUSH)(win.GetStockObject(win.GRAY_BRUSH)))
-
-	//win.FillRect(hdc2, &win.RECT{100, 100, 200, 200}, (win.HBRUSH)(win.GetStockObject(win.BLACK_BRUSH)))
-	//win.FillRect(hdc2, &win.RECT{100, 100, 200, 200}, (win.HBRUSH)(win.GetStockObject(win.GRAY_BRUSH)))
-	//win.FillRect(hdc2, &win.RECT{400, 400, 500, 500}, (win.HBRUSH)(win.GetStockObject(win.BLACK_BRUSH)))
-	win.GdipReleaseDC(graphics, hdc2)
-	//*/
-
-	//win.SelectObject(hdc2, win.HGDIOBJ(hbmp))
-	//win.FillRect(hdc2, &win.RECT{400, 400, 500, 500}, (win.HBRUSH)(win.GetStockObject(win.BLACK_BRUSH)))
-
-	//err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeAntiAlias)
-	/*err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeDefault)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}//*/
-
 	/*
-		err = win.GdipDrawRectangle(graphics, pen1, 50.0, 50.0, 200.0, 200.0)
+		var graphics *win.GpGraphics
+		err = win.GdipCreateFromHDC(canvas.HDC(), &graphics)
+		//err = win.GdipGetImageGraphicsContext(&bitmap.GpImage, &graphics)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeleteGraphics(graphics)
+
+		fmt.Printf("graphics = %p\n", graphics)
+
+		var hdc2 win.HDC
+		win.GdipGetDC(graphics, &hdc2)
+		fmt.Printf("graphics.GetDC() = 0x%x\n", hdc2)
+
+		//canvas.DrawRectangle(pen_1, core.Rectangle{100, 100, 50, 50})
+
+		var brush1 *win.GpSolidFill
+		err = win.GdipCreateSolidFill(0xFF0000FF, &brush1)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeleteBrush(&brush1.GpBrush)
+
+		var pen1 *win.GpPen
+		err = win.GdipCreatePen1(0xFFFF0000, 1, 2, &pen1)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer win.GdipDeletePen(pen1)
+
+		//err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeAntiAlias)
+		err = win.GdipSetSmoothingMode(graphics, win.SmoothingModeDefault)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		err = win.GdipFillRectangle(graphics, &brush1.GpBrush, 50.0, 50.0, 100.0, 100.0)
+		err = win.GdipDrawRectangle(graphics, pen1, 50, 50, 200, 200)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		err = win.GdipFillRectangle(graphics, &brush1.GpBrush, 50, 50, 100, 100)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -255,24 +233,9 @@ func main() {
 			return
 		} //*/
 
-	var bitmap *win.GpBitmap
-	err = win.GdipCreateBitmapFromHBITMAP(hbmp, 0, &bitmap)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer win.GdipDisposeImage(&bitmap.GpImage)
+	bmp.EndPaint()
 
-	//clsid, _ := win.GetEncoderClsid("image/png")
-	clsid, _ := win.GetEncoderClsid("image/bmp")
-	if clsid == nil {
-		fmt.Println("GetEncoderClsid failed")
-	} else {
-		fmt.Println("clsid =", *clsid)
-	}
-
-	//win.GdipSaveImageToFile(&bitmap.GpImage, "test1.png", clsid, nil)
-	win.GdipSaveImageToFile(&bitmap.GpImage, "test1.bmp", clsid, nil)
+	bmp.SaveToFile("test1.bmp", "bmp")
 
 	return
 

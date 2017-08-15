@@ -23,7 +23,7 @@ if %GOARCH% == amd64 (
 		copy .\bin\%1.exe  %output64%
 		del .\bin\%1.exe
 		
-		echo building 32-bit ......
+		rem echo building 32-bit ......
 		
 		rem set GOARCH=386
 		rem go build -o=%output32% %1

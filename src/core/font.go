@@ -9,8 +9,11 @@ type Font struct {
 }
 
 const (
-	FONT_STYLE_NORMAL = iota
-	FONT_STYLE_BOLD
+	FONT_STYLE_NORMAL     = 0x00
+	FONT_STYLE_BOLD       = 0x01
+	FONT_STYLE_ITALIC     = 0x02
+	FONT_STYLE_UNDER_LINE = 0x04
+	FONT_STYLE_STRIKE_OUT = 0x08
 )
 
 func NewFont(Name string, Style, Size int) *Font {

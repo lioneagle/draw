@@ -2,6 +2,7 @@ package implwin
 
 import (
 	"core"
+	"fmt"
 	"win"
 )
 
@@ -60,6 +61,24 @@ func (this *BitmapWin) Draw(canvas core.Canvas) error {
 	return nil
 }
 
-func (this *BitmapWin) SaveToFile(filename, format string) {
+func (this *BitmapWin) SaveToFile(filename, format string) error {
+	var bitmap *win.GpBitmap
 
+	err := win.GdipCreateBitmapFromHBITMAP(this.hBmp, 0, &bitmap)
+	if err != nil {
+		return core.NewError(fmt.Sprintf("GdipCreateBitmapFromHBITMAP failed, err =", err.Error()))
+	}
+	defer win.GdipDisposeImage(&bitmap.GpImage)
+
+	clsid, _ := win.GetEncoderClsid(fmt.Sprintf("image/%s", format))
+	if clsid == nil {
+		return core.NewError(fmt.Sprintf("Do not support %s", format))
+	}
+
+	err = win.GdipSaveImageToFile(&bitmap.GpImage, filename, clsid, nil)
+	if err != nil {
+		return core.NewError(fmt.Sprintf("GdipSaveImageToFile failed, err =", err.Error()))
+	}
+
+	return nil
 }
