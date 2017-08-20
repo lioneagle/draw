@@ -5,12 +5,34 @@ import (
 	//"os"
 	"core/implwin"
 	"fmt"
+	"sdl"
 	"sequence"
 	"syscall"
 	"win"
 )
 
 func main() {
+
+	err = sdl.SDL_Init(sdl.SDL_INIT_EVERYTHING)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer sdl.SDL_Quit()
+
+	err = sdl.SDL_WasInit(sdl.SDL_INIT_EVERYTHING)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = sdl.SDL_InitSubSystem(sdl.SDL_INIT_VIDEO)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer sdl.SDL_QuitSubSystem(sdl.SDL_INIT_VIDEO)
+
+	return
 
 	fmt.Println("w1 =", syscall.StringToUTF16("123abc"))
 
@@ -23,7 +45,7 @@ func main() {
 
 	input.GdiplusVersion = 1
 
-	err := win.GdiplusStartup(&input, &output)
+	err = win.GdiplusStartup(&input, &output)
 	if err != nil {
 		fmt.Println(err)
 		return
