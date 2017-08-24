@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	err = sdl.SDL_Init(sdl.SDL_INIT_EVERYTHING)
+	err := sdl.SDL_Init(sdl.SDL_INIT_EVERYTHING)
 	if err != nil {
 		fmt.Println(err)
 		return
