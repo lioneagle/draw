@@ -11,6 +11,26 @@ import (
 	"win"
 )
 
+func pressESCtoQuit() {
+	fmt.Println("pressESCtoQuit() function begin ...")
+	gameOver := false
+	for !gameOver {
+		var gameEvent sdl.SDL_Event
+		for sdl.SDL_PollEvent(&gameEvent) {
+			if gameEvent.SDL_EventType.Type == sdl.SDL_QUIT {
+				gameOver = true
+			}
+
+			if gameEvent.SDL_EventType.Type == sdl.SDL_KEYUP {
+				if gameEvent.SDL_KeyboardEvent().Keysym.Sym == sdl.SDLK_ESCAPE {
+					gameOver = true
+				}
+			}
+		}
+		fmt.Printf(".")
+	}
+}
+
 func main() {
 
 	err := sdl.SDL_Init(sdl.SDL_INIT_EVERYTHING)
@@ -31,6 +51,22 @@ func main() {
 		return
 	}
 	defer sdl.SDL_QuitSubSystem(sdl.SDL_INIT_VIDEO)
+
+	//window, err := sdl.SDL_CreateWindow("test1", 50, 50, 640, 480, sdl.SDL_WINDOW_OPENGL)
+	//window, err := sdl.SDL_CreateWindow("test1", 50, 50, 640, 480, 0)
+	//window, err := sdl.SDL_CreateWindow("test1", 50, 50, 640, 480, sdl.SDL_WINDOW_RESIZABLE)
+	//window, err := sdl.SDL_CreateWindow("test1", 50, 50, 640, 480, sdl.SDL_WINDOW_RESIZABLE|sdl.SDL_WINDOWPOS_CENTERED_MASK)
+	window, err := sdl.SDL_CreateWindow("test1", sdl.SDL_WINDOWPOS_CENTERED, sdl.SDL_WINDOWPOS_CENTERED,
+		640, 480, sdl.SDL_WINDOW_RESIZABLE|sdl.SDL_WINDOW_HIDDEN)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer sdl.SDL_DestroyWindow(window)
+
+	fmt.Println("Program is running, press ESC to quit.")
+	pressESCtoQuit()
+	fmt.Println("GAME OVER")
 
 	return
 
