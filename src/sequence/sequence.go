@@ -2,9 +2,11 @@ package sequence
 
 import (
 	"core"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	//"path/filepath"
 )
 
 const (
@@ -25,6 +27,7 @@ type Steps struct {
 
 type Participant struct {
 	Name    string
+	Label   string
 	Id      int
 	Font    *core.Font
 	IsFocus bool
@@ -71,6 +74,7 @@ type SequenceConfig struct {
 	ParticipantFont           *core.Font
 	MsgFont                   *core.Font
 	NoteFont                  *core.Font
+	PlantumlJarPath           string
 }
 
 func NewSequenceConfig() *SequenceConfig {
@@ -127,7 +131,7 @@ func (this *Sequence) GenDotPng(dotfile, pngfile string) {
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("err =", err)
+		fmt.Println("GenDotPng failed: ", err.Error())
 	}
 	os.Remove(dotfile)
 }
@@ -146,7 +150,11 @@ func (this *Sequence) BuildDotFile(filename string, config *SequenceConfig) {
 func (this *Sequence) BuildDot(config *SequenceConfig) string {
 	var buf core.Writer
 
-	m, _ := this.getSteps()
+	m, err := this.getSteps()
+	if err != nil {
+		fmt.Printf("BuildDot failed: %s\n", err.Error())
+		return ""
+	}
 
 	format := `digraph G {
     rankdir="LR";
@@ -176,30 +184,34 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 		buf.Writeln("        rank=\"same\";")
 		buf.Writeln("        edge[style=\"solid\"];")
 		if !v.IsFocus {
-			buf.Writeln("        obj%d[shape=\"box\", label=\"%s\", width=1, height=0.5];", v.Id, v.Name)
+			buf.Writeln("        %s[shape=\"box\", label=\"%s\", width=1, height=0.5];", v.Name, v.Label)
 		} else {
-			buf.Writeln("        obj%d[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];",
-				v.Id, v.Name, config.FocusParticipantFillColor.RGBString())
+			buf.Writeln("        %s[shape=\"box\", label=\"%s\", fillcolor=\"%s\", style=filled, width=1, height=0.5];",
+				v.Name, v.Label, config.FocusParticipantFillColor.RGBString())
 		}
 
-		steps, _ := m[v.Name]
+		steps, ok := m[v.Name]
+		if !ok {
+			fmt.Printf("ERROR: cannot find object \"%s\"\n", v.Name)
+			return ""
+		}
 		for j, s := range steps.Data {
 			if j == (len(steps.Data) - 1) {
-				buf.Writeln("        obj%d_step_%d[shape=\"box\", width=0.5, label=\"\"];", v.Id, s.Id)
+				buf.Writeln("        %s_step_%d[shape=\"box\", width=0.5, label=\"\"];", v.Name, s.Id)
 				break
 			}
 			if s.Type == STEP_TYPE_NOTE {
-				buf.Writeln("        obj%d_note_%d[shape=\"circle\", label=\"%s\", width=0.51];", v.Id, s.Id, s.Name)
+				buf.Writeln("        %s_note_%d[shape=\"circle\", label=\"%s\", width=0.51];", v.Name, s.Id, s.Name)
 			}
 		}
 
-		buf.Write("        obj%d", v.Id)
+		buf.Write("        %s", v.Name)
 
 		for _, s := range steps.Data {
 			if s.Type == STEP_TYPE_NOTE {
-				buf.Write(" -> obj%d_note_%d", v.Id, s.Id)
+				buf.Write(" -> %s_note_%d", v.Name, s.Id)
 			} else {
-				buf.Write(" -> obj%d_step_%d", v.Id, s.Id)
+				buf.Write(" -> %s_step_%d", v.Name, s.Id)
 			}
 		}
 
@@ -212,42 +224,49 @@ func (this *Sequence) BuildDot(config *SequenceConfig) string {
 		switch data := a.(type) {
 		case *Message:
 			from := this.findParticipant(data.From)
+			if from == nil {
+				fmt.Printf("ERROR: cannot find object \"%s\"\n", data.From)
+				return ""
+			}
 			to := this.findParticipant(data.To)
+			if to == nil {
+				fmt.Printf("ERROR: cannot find object \"%s\"\n", data.To)
+				return ""
+			}
 
 			var k int
 
 			if to.Id > from.Id {
 				if to.Id == (from.Id + 1) {
-					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];",
-						from.Id, data.Id, from.Id+1, data.Id, data.Name)
+					buf.Writeln("    %s_step_%d -> %s_step_%d [label=\"%s\", arrowhead=\"normal\"];",
+						from.Name, data.Id, to.Name, data.Id, data.Name)
 				} else {
-					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\"];",
-						from.Id, data.Id, from.Id+1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString())
+					buf.Writeln("    %s_step_%d -> %s_step_%d [label=\"%s\", color=\"%s\"];",
+						from.Name, data.Id, this.participants[from.Id+1].Name, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString())
 					for k = from.Id + 1; k < to.Id; k++ {
 						if k != (to.Id - 1) {
-							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];",
-								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString())
+							buf.Writeln("    %s_step_%d -> %s_step_%d [color=\"%s\"];",
+								this.participants[k].Name, data.Id, this.participants[k+1].Name, data.Id, config.CrossNeighborMsgColor.RGBString())
 						} else {
-							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];",
-								k, data.Id, k+1, data.Id, config.CrossNeighborMsgColor.RGBString())
+							buf.Writeln("    %s_step_%d -> %s_step_%d [arrowhead=\"normal\", color=\"%s\"];",
+								this.participants[k].Name, data.Id, this.participants[k+1].Name, data.Id, config.CrossNeighborMsgColor.RGBString())
 						}
 					}
 				}
-
 			} else {
 				if to.Id == (from.Id - 1) {
-					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", arrowhead=\"normal\"];",
-						from.Id, data.Id, from.Id-1, data.Id, data.Name)
+					buf.Writeln("    %s_step_%d -> %s_step_%d [label=\"%s\", arrowhead=\"normal\"];",
+						from.Name, data.Id, to.Name, data.Id, data.Name)
 				} else {
-					buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [label=\"%s\", color=\"%s\", ];",
-						from.Id, data.Id, from.Id-1, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString())
+					buf.Writeln("    %s_step_%d -> %s_step_%d [label=\"%s\", color=\"%s\", ];",
+						from.Name, data.Id, this.participants[from.Id-1].Name, data.Id, data.Name, config.CrossNeighborMsgColor.RGBString())
 					for k = from.Id - 1; k > to.Id; k-- {
 						if k != (to.Id + 1) {
-							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [color=\"%s\"];",
-								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString())
+							buf.Writeln("    %s_step_%d -> %s_step_%d [color=\"%s\"];",
+								this.participants[k].Name, data.Id, this.participants[k-1].Name, data.Id, config.CrossNeighborMsgColor.RGBString())
 						} else {
-							buf.Writeln("    obj%d_step_%d -> obj%d_step_%d [arrowhead=\"normal\", color=\"%s\"];",
-								k, data.Id, k-1, data.Id, config.CrossNeighborMsgColor.RGBString())
+							buf.Writeln("    %s_step_%d -> %s_step_%d [arrowhead=\"normal\", color=\"%s\"];",
+								this.participants[k].Name, data.Id, this.participants[k-1].Name, data.Id, config.CrossNeighborMsgColor.RGBString())
 						}
 					}
 				}
@@ -265,11 +284,19 @@ func (this *Sequence) getSteps() (map[string]*Steps, error) {
 	totalSteps := this.getTotalStepNum()
 
 	for _, v := range this.participants {
+		m[v.Name] = nil
+	}
+
+	for _, v := range this.participants {
 		steps := &Steps{}
 		id := 0
 		for _, a := range this.actions {
 			switch data := a.(type) {
 			case *Note:
+				_, ok := m[data.OverParticipant]
+				if !ok {
+					return m, errors.New(fmt.Sprintf("ERROR: cannot find object \"%s\"", data.OverParticipant))
+				}
 				if data.OverParticipant == v.Name {
 					data.Id = id
 					steps.Data = append(steps.Data, &Step{Name: data.Name, Font: data.Font, Type: STEP_TYPE_NOTE})
@@ -320,7 +347,134 @@ func (this *Sequence) getMaxRow() int {
 	return maxRow
 }
 
-func (this *Sequence) BuildPlantUml() string {
+func (this *Sequence) BuildAndGenPlantumlPng(pngfile string, config *SequenceConfig) {
+	plantUmlfile := core.ReplaceFileSuffix(pngfile, "puml")
+	this.BuildDotFile(plantUmlfile, config)
+	this.GenPlantumlPng(plantUmlfile, pngfile, config)
+}
 
-	return ""
+func (this *Sequence) BuildPlantumlFile(filename string, config *SequenceConfig) {
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Printf("ERROR: cannot open file %s\r\n", filename)
+		return
+	}
+	defer file.Close()
+
+	file.WriteString(this.BuildPlantUml(config))
+}
+
+func (this *Sequence) GenPlantumlPng(plantUmlfile, pngfile string, config *SequenceConfig) {
+	cmd := exec.Command("java", "-jar", config.PlantumlJarPath+"plantuml.jar", plantUmlfile, "-v")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = "f:\\"
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("GenPlantumlPng failed: =", err)
+	}
+	fmt.Println("cmd.Args =", cmd.Args)
+	fmt.Println("cmd.Dir =", cmd.Dir)
+
+}
+
+func (this *Sequence) BuildPlantUml(config *SequenceConfig) string {
+	var buf core.Writer
+
+	//m, _ := this.getSteps()
+
+	buf.Write(`@startuml
+hide footbox
+scale 700*600
+
+skinparam Note {
+	BorderColor black
+	BackgroundColor white
+
+	FontName %s
+	FontColor %s
+	FontSize %d
+	FontStyle %s
+	
+}
+
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+skinparam sequence {
+	ParticipantBorderColor black
+	ParticipantBackgroundColor white
+
+	ParticipantFontName %s
+	ParticipantFontColor %s
+	ParticipantFontSize %d
+	ParticipantFontStyle %s
+
+	LifeLineBorderColor black
+	
+	ArrowColor black
+
+	ArrowFontName %s
+	ArrowFontColor %s
+	ArrowFontSize %d
+	ArrowFontStyle %s
+}
+
+`,
+		config.ParticipantFont.GetPlantumlName(), config.ParticipantFont.FrontColor.RGBString(), config.ParticipantFont.Size, config.ParticipantFont.GetStyleName(),
+		config.ParticipantFont.GetPlantumlName(), config.ParticipantFont.FrontColor.RGBString(), config.ParticipantFont.Size, config.ParticipantFont.GetStyleName(),
+		config.MsgFont.GetPlantumlName(), config.MsgFont.FrontColor.RGBString(), config.MsgFont.Size, config.MsgFont.GetStyleName(),
+	)
+
+	for i, v := range this.participants {
+		v.Id = i
+	}
+
+	for _, v := range this.participants {
+		buf.Write("participant \"%s\" as %s", v.Label, v.Name)
+		if v.IsFocus {
+			buf.Write(" %s", config.FocusParticipantFillColor.RGBString())
+		}
+		buf.Writeln("")
+
+	}
+
+	for _, a := range this.actions {
+		switch data := a.(type) {
+		case *Message:
+			from := this.findParticipant(data.From)
+			if from == nil {
+				fmt.Printf("ERROR: cannot find object \"%s\"\n", data.From)
+				return ""
+			}
+			to := this.findParticipant(data.To)
+			if to == nil {
+				fmt.Printf("ERROR: cannot find object \"%s\"\n", data.To)
+				return ""
+			}
+
+			if to.Id == (from.Id+1) || from.Id == (to.Id+1) {
+				buf.Writeln("%s -> %s: %s", from.Name, to.Name, data.Name)
+			} else {
+				buf.Writeln("%s -[%s]> %s: <back:%s>%s</back>",
+					from.Name,
+					config.CrossNeighborMsgColor.RGBString(),
+					to.Name,
+					config.TextBackgroundColor.RGBString(),
+					data.Name)
+			}
+		case *Note:
+			obj := this.findParticipant(data.OverParticipant)
+			if obj == nil {
+				fmt.Printf("ERROR: cannot find object \"%s\"\n", data.OverParticipant)
+				return ""
+			}
+			buf.Writeln("hnote over %s: %s", obj.Name, data.Name)
+		}
+	}
+
+	buf.Writeln("")
+	buf.Writeln("@enduml")
+
+	return buf.String()
 }

@@ -28,3 +28,19 @@ func (this *Font) GetDotName() string {
 	}
 	return s
 }
+
+func (this *Font) GetPlantumlName() string {
+	return this.Name
+}
+
+func (this *Font) GetStyleName() string {
+	switch this.Style {
+	case FONT_STYLE_BOLD:
+		return "bold"
+	case FONT_STYLE_ITALIC:
+		return "italic"
+	case FONT_STYLE_UNDER_LINE:
+		return "underline"
+	}
+	return ""
+}

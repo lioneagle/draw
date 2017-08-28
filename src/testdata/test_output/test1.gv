@@ -7,46 +7,46 @@ digraph G {
     {
         rank="same";
         edge[style="solid"];
-        obj0[shape="box", label="UE", width=1, height=0.5];
-        obj0_step_10[shape="box", width=0.5, label=""];
-        obj0 -> obj0_step_0 -> obj0_step_1 -> obj0_step_2 -> obj0_step_3 -> obj0_step_4 -> obj0_step_5 -> obj0_step_6 -> obj0_step_7 -> obj0_step_8 -> obj0_step_9 -> obj0_step_10;
+        ue[shape="box", label="UE", width=1, height=0.5];
+        ue_step_10[shape="box", width=0.5, label=""];
+        ue -> ue_step_0 -> ue_step_1 -> ue_step_2 -> ue_step_3 -> ue_step_4 -> ue_step_5 -> ue_step_6 -> ue_step_7 -> ue_step_8 -> ue_step_9 -> ue_step_10;
     }
 
     {
         rank="same";
         edge[style="solid"];
-        obj1[shape="box", label="ZXUN B200", fillcolor="#ffc90e", style=filled, width=1, height=0.5];
-        obj1_note_0[shape="circle", label="A", width=0.51];
-        obj1_step_10[shape="box", width=0.5, label=""];
-        obj1 -> obj1_step_0 -> obj1_step_1 -> obj1_step_2 -> obj1_step_3 -> obj1_step_4 -> obj1_step_5 -> obj1_step_6 -> obj1_step_7 -> obj1_note_0 -> obj1_step_10;
+        sbc[shape="box", label="ZXUN B200", fillcolor="#ffc90e", style=filled, width=1, height=0.5];
+        sbc_note_0[shape="circle", label="A", width=0.51];
+        sbc_step_10[shape="box", width=0.5, label=""];
+        sbc -> sbc_step_0 -> sbc_step_1 -> sbc_step_2 -> sbc_step_3 -> sbc_step_4 -> sbc_step_5 -> sbc_step_6 -> sbc_step_7 -> sbc_note_0 -> sbc_step_10;
     }
 
     {
         rank="same";
         edge[style="solid"];
-        obj2[shape="box", label="I/S-CSCF", width=1, height=0.5];
-        obj2_step_10[shape="box", width=0.5, label=""];
-        obj2 -> obj2_step_0 -> obj2_step_1 -> obj2_step_2 -> obj2_step_3 -> obj2_step_4 -> obj2_step_5 -> obj2_step_6 -> obj2_step_7 -> obj2_step_8 -> obj2_step_9 -> obj2_step_10;
+        cscf[shape="box", label="I/S-CSCF", width=1, height=0.5];
+        cscf_step_10[shape="box", width=0.5, label=""];
+        cscf -> cscf_step_0 -> cscf_step_1 -> cscf_step_2 -> cscf_step_3 -> cscf_step_4 -> cscf_step_5 -> cscf_step_6 -> cscf_step_7 -> cscf_step_8 -> cscf_step_9 -> cscf_step_10;
     }
 
     {
         rank="same";
         edge[style="solid"];
-        obj3[shape="box", label="SCC AS", width=1, height=0.5];
-        obj3_step_10[shape="box", width=0.5, label=""];
-        obj3 -> obj3_step_0 -> obj3_step_1 -> obj3_step_2 -> obj3_step_3 -> obj3_step_4 -> obj3_step_5 -> obj3_step_6 -> obj3_step_7 -> obj3_step_8 -> obj3_step_9 -> obj3_step_10;
+        scc_as[shape="box", label="SCC AS", width=1, height=0.5];
+        scc_as_step_10[shape="box", width=0.5, label=""];
+        scc_as -> scc_as_step_0 -> scc_as_step_1 -> scc_as_step_2 -> scc_as_step_3 -> scc_as_step_4 -> scc_as_step_5 -> scc_as_step_6 -> scc_as_step_7 -> scc_as_step_8 -> scc_as_step_9 -> scc_as_step_10;
     }
 
-    obj0_step_0 -> obj1_step_0 [label="INVITE", arrowhead="normal"];
-    obj1_step_1 -> obj2_step_1 [label="INVITE", arrowhead="normal"];
-    obj2_step_2 -> obj3_step_2 [label="INVITE", arrowhead="normal"];
-    obj3_step_3 -> obj2_step_3 [label="INVITE 180", arrowhead="normal"];
-    obj2_step_4 -> obj1_step_4 [label="INVITE 180", arrowhead="normal"];
-    obj1_step_5 -> obj0_step_5 [label="INVITE 180", arrowhead="normal"];
-    obj3_step_6 -> obj2_step_6 [label="test1", color="#44aacd", ];
-    obj2_step_6 -> obj1_step_6 [color="#44aacd"];
-    obj1_step_6 -> obj0_step_6 [arrowhead="normal", color="#44aacd"];
-    obj0_step_7 -> obj1_step_7 [label="test2", color="#44aacd"];
-    obj1_step_7 -> obj2_step_7 [color="#44aacd"];
-    obj2_step_7 -> obj3_step_7 [arrowhead="normal", color="#44aacd"];
+    ue_step_0 -> sbc_step_0 [label="INVITE", arrowhead="normal"];
+    sbc_step_1 -> cscf_step_1 [label="INVITE", arrowhead="normal"];
+    cscf_step_2 -> scc_as_step_2 [label="INVITE", arrowhead="normal"];
+    scc_as_step_3 -> cscf_step_3 [label="INVITE 180", arrowhead="normal"];
+    cscf_step_4 -> sbc_step_4 [label="INVITE 180", arrowhead="normal"];
+    sbc_step_5 -> ue_step_5 [label="INVITE 180", arrowhead="normal"];
+    scc_as_step_6 -> cscf_step_6 [label="test1", color="#44aacd", ];
+    cscf_step_6 -> sbc_step_6 [color="#44aacd"];
+    sbc_step_6 -> ue_step_6 [arrowhead="normal", color="#44aacd"];
+    ue_step_7 -> sbc_step_7 [label="test2", color="#44aacd"];
+    sbc_step_7 -> cscf_step_7 [color="#44aacd"];
+    cscf_step_7 -> scc_as_step_7 [arrowhead="normal", color="#44aacd"];
 }

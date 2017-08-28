@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -29,4 +31,24 @@ func ReplaceFileSuffix(filename, newSuffix string) string {
 	ext := filepath.Ext(base)
 	newName := strings.TrimSuffix(filename, ext)
 	return fmt.Sprintf("%s.%s", newName, newSuffix)
+}
+
+func GetCurrentPath() string {
+	s, _ := exec.LookPath(os.Args[0])
+	i := strings.LastIndex(s, "\\")
+	path := string(s[0 : i+1])
+	return path
+}
+
+func PathOrFileIsExist(pathOrFile string) (bool, error) {
+	_, err := os.Stat(pathOrFile)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
 }
