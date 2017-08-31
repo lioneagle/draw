@@ -1,0 +1,52 @@
+@startuml
+hide footbox
+scale 700*600
+
+skinparam Note {
+	BorderColor black
+	BackgroundColor white
+
+	FontName Arial
+	FontColor #000000
+	FontSize 9
+	FontStyle bold
+	
+}
+
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+skinparam sequence {
+	ParticipantBorderColor black
+	ParticipantBackgroundColor white
+
+	ParticipantFontName Arial
+	ParticipantFontColor #000000
+	ParticipantFontSize 9
+	ParticipantFontStyle bold
+
+	LifeLineBorderColor black
+	
+	ArrowColor black
+
+	ArrowFontName Arial
+	ArrowFontColor #000000
+	ArrowFontSize 9
+	ArrowFontStyle bold
+}
+
+participant "UE" as ue
+participant "ZXUN B200" as sbc #ffc90e
+participant "I/S-CSCF" as cscf
+participant "SCC AS" as scc_as
+ue -> sbc: INVITE
+sbc -> cscf: INVITE
+cscf -> scc_as: INVITE
+scc_as -> cscf: INVITE 180
+cscf -> sbc: INVITE 180
+sbc -> ue: INVITE 180
+scc_as -[#44aacd]> ue: <back:#e8f8f7>test1</back>
+ue -[#44aacd]> scc_as: <back:#e8f8f7>test2</back>
+hnote over sbc: A
+
+@enduml

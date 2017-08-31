@@ -2,7 +2,7 @@ package sequence
 
 import (
 	"core"
-	"fmt"
+	//"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -51,9 +51,7 @@ func TestSequenceBuildDot(t *testing.T) {
 }
 
 func TestSequenceBuildplantuml(t *testing.T) {
-	prefix := "TestSequenceBuildDot"
-
-	fmt.Println("os.Args[0] =", os.Args[0])
+	prefix := "TestSequenceBuildplantuml"
 
 	seq := &Sequence{}
 	config := NewSequenceConfig()

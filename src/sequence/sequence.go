@@ -349,7 +349,7 @@ func (this *Sequence) getMaxRow() int {
 
 func (this *Sequence) BuildAndGenPlantumlPng(pngfile string, config *SequenceConfig) {
 	plantUmlfile := core.ReplaceFileSuffix(pngfile, "puml")
-	this.BuildDotFile(plantUmlfile, config)
+	this.BuildPlantumlFile(plantUmlfile, config)
 	this.GenPlantumlPng(plantUmlfile, pngfile, config)
 }
 
@@ -365,7 +365,8 @@ func (this *Sequence) BuildPlantumlFile(filename string, config *SequenceConfig)
 }
 
 func (this *Sequence) GenPlantumlPng(plantUmlfile, pngfile string, config *SequenceConfig) {
-	cmd := exec.Command("java", "-jar", config.PlantumlJarPath+"plantuml.jar", plantUmlfile, "-v")
+	//cmd := exec.Command("java", "-jar", config.PlantumlJarPath+"plantuml.jar", plantUmlfile, "-v")
+	cmd := exec.Command("java", "-jar", config.PlantumlJarPath+"plantuml.jar", plantUmlfile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = "f:\\"
@@ -373,9 +374,8 @@ func (this *Sequence) GenPlantumlPng(plantUmlfile, pngfile string, config *Seque
 	if err != nil {
 		fmt.Println("GenPlantumlPng failed: =", err)
 	}
-	fmt.Println("cmd.Args =", cmd.Args)
-	fmt.Println("cmd.Dir =", cmd.Dir)
-
+	//fmt.Println("cmd.Args =", cmd.Args)
+	//fmt.Println("cmd.Dir =", cmd.Dir)
 }
 
 func (this *Sequence) BuildPlantUml(config *SequenceConfig) string {

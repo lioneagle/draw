@@ -2,9 +2,9 @@ package main
 
 import (
 	"core"
-	//"os"
 	"core/implwin"
 	"fmt"
+	//"os"
 	"sdl"
 	"sequence"
 	"syscall"
@@ -31,8 +31,7 @@ func pressESCtoQuit() {
 	}
 }
 
-func main() {
-
+func TestSdl() {
 	err := sdl.SDL_Init(sdl.SDL_INIT_EVERYTHING)
 	if err != nil {
 		fmt.Println(err)
@@ -70,6 +69,9 @@ func main() {
 
 	return
 
+}
+
+func TestGdi() {
 	fmt.Println("w1 =", syscall.StringToUTF16("123abc"))
 
 	w1 := win.StringToWcharPtr("123abc")
@@ -81,7 +83,7 @@ func main() {
 
 	input.GdiplusVersion = 1
 
-	err = win.GdiplusStartup(&input, &output)
+	err := win.GdiplusStartup(&input, &output)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -296,29 +298,43 @@ func main() {
 	bmp.SaveToFile("test1.bmp", "bmp")
 
 	return
+}
 
-	seq := &sequence.Sequence{}
+func CreateConfig() *sequence.SequenceConfig {
 	config := sequence.NewSequenceConfig()
+	config.PlantumlJarPath = "F:\\DevCode\\go_code\\src\\my_code\\draw\\"
+	return config
+}
+
+func CreateSequence(config *sequence.SequenceConfig) *sequence.Sequence {
+	seq := &sequence.Sequence{}
 
 	participantFont := config.ParticipantFont
 	messageFont := config.MsgFont
 	noteFont := config.NoteFont
 
-	seq.AddParticipant(&sequence.Participant{Name: "UE", Font: participantFont})
-	seq.AddParticipant(&sequence.Participant{Name: "ZXUN B200", Font: participantFont, IsFocus: true})
-	seq.AddParticipant(&sequence.Participant{Name: "I/S-CSCF", Font: participantFont})
-	seq.AddParticipant(&sequence.Participant{Name: "SCC AS", Font: participantFont})
+	seq.AddParticipant(&sequence.Participant{Name: "ue", Label: "UE", Font: participantFont})
+	seq.AddParticipant(&sequence.Participant{Name: "sbc", Label: "ZXUN B200", Font: participantFont, IsFocus: true})
+	seq.AddParticipant(&sequence.Participant{Name: "cscf", Label: "I/S-CSCF", Font: participantFont})
+	seq.AddParticipant(&sequence.Participant{Name: "scc_as", Label: "SCC AS", Font: participantFont})
 
-	seq.AddMessage(&sequence.Message{From: "UE", To: "ZXUN B200", Name: "INVITE", Font: messageFont, Seq: 1})
-	seq.AddMessage(&sequence.Message{From: "ZXUN B200", To: "I/S-CSCF", Name: "INVITE", Font: messageFont, Seq: 2})
-	seq.AddMessage(&sequence.Message{From: "I/S-CSCF", To: "SCC AS", Name: "INVITE", Font: messageFont, Seq: 2})
-	seq.AddMessage(&sequence.Message{From: "SCC AS", To: "I/S-CSCF", Name: "INVITE 180", Font: messageFont, Seq: 3})
-	seq.AddMessage(&sequence.Message{From: "I/S-CSCF", To: "ZXUN B200", Name: "INVITE 180", Font: messageFont, Seq: 3})
-	seq.AddMessage(&sequence.Message{From: "ZXUN B200", To: "UE", Name: "INVITE 180", Font: messageFont, Seq: 4})
-	seq.AddMessage(&sequence.Message{From: "SCC AS", To: "UE", Name: "test1", Font: messageFont, Seq: 4})
-	seq.AddMessage(&sequence.Message{From: "UE", To: "SCC AS", Name: "test2", Font: messageFont, Seq: 4})
+	seq.AddMessage(&sequence.Message{From: "ue", To: "sbc", Name: "INVITE", Font: messageFont, Seq: 1})
+	seq.AddMessage(&sequence.Message{From: "sbc", To: "cscf", Name: "INVITE", Font: messageFont, Seq: 2})
+	seq.AddMessage(&sequence.Message{From: "cscf", To: "scc_as", Name: "INVITE", Font: messageFont, Seq: 2})
+	seq.AddMessage(&sequence.Message{From: "scc_as", To: "cscf", Name: "INVITE 180", Font: messageFont, Seq: 3})
+	seq.AddMessage(&sequence.Message{From: "cscf", To: "sbc", Name: "INVITE 180", Font: messageFont, Seq: 3})
+	seq.AddMessage(&sequence.Message{From: "sbc", To: "ue", Name: "INVITE 180", Font: messageFont, Seq: 4})
+	seq.AddMessage(&sequence.Message{From: "scc_as", To: "ue", Name: "test1", Font: messageFont, Seq: 4})
+	seq.AddMessage(&sequence.Message{From: "ue", To: "scc_as", Name: "test2", Font: messageFont, Seq: 4})
 
-	seq.AddNote(&sequence.Note{OverParticipant: "ZXUN B200", Name: "A", Font: noteFont})
+	seq.AddNote(&sequence.Note{OverParticipant: "sbc", Name: "A", Font: noteFont})
+
+	return seq
+}
+
+func GenDot() {
+	config := CreateConfig()
+	seq := CreateSequence(config)
 
 	//fmt.Print("dot =\n", dot)
 
@@ -330,10 +346,25 @@ func main() {
 	//pngOutput := `d:/test2.png`
 
 	seq.BuildAndGenDotPng(pngOutput, config)
+}
 
-	var x win.ULONG
+func GenPlantuml() {
+	config := CreateConfig()
+	seq := CreateSequence(config)
 
-	x = 1
+	//fmt.Print("dot =\n", dot)
 
-	fmt.Println("x =", x)
+	//dotStandard := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_standard\\test1.gv"
+	//dotOutput := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_output\\test1.gv"
+
+	//pngStandard := os.Args[len(os.Args)-1] + "\\src\\testdata\\test_standard\\test2.png"
+	pngOutput := `F:\DevCode\go_code\src\my_code\draw\src\testdata\test_output\test3.png`
+	//pngOutput := `d:/test2.png`
+
+	seq.BuildAndGenPlantumlPng(pngOutput, config)
+}
+
+func main() {
+
+	GenPlantuml()
 }
