@@ -5,6 +5,7 @@ import (
 	"core/implwin"
 	"fmt"
 	//"os"
+	//"parser"
 	"sdl"
 	"sequence"
 	"syscall"
@@ -366,5 +367,7 @@ func GenPlantuml() {
 
 func main() {
 
+	fmt.Printf("parser.TOKEN_CONFIG")
+	return
 	GenPlantuml()
 }

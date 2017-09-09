@@ -47,7 +47,7 @@ cscf -> sbc: INVITE 180
 sbc -> ue: INVITE 180
 sccas -[#44aacd]> ue: <back:#e8f8f7>test1</back>
 ue -[#44aacd]> sccas: <back:#e8f8f7>test2</back>
-hnote over sbc: A
+hnote over sbc: A <p>asdasdaad</p>
 
 
 @enduml
