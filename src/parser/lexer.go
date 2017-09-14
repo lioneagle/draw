@@ -255,7 +255,7 @@ func (this *Lexer) Scan() (pos Pos, token Token, lit string) {
 
 	switch ch := this.ch; {
 	case isLetter(ch):
-		lit := this.scanIdentifier()
+		lit = this.scanIdentifier()
 		if len(lit) > 1 {
 			token = Lookup(lit)
 		} else {
@@ -264,6 +264,7 @@ func (this *Lexer) Scan() (pos Pos, token Token, lit string) {
 	case '0' <= ch && ch <= '9':
 		token, lit = this.scanNumber(false)
 	default:
+		lit = string(ch)
 		this.next() // always make progress
 		switch ch {
 		case -1:
@@ -302,15 +303,17 @@ func (this *Lexer) Scan() (pos Pos, token Token, lit string) {
 		case '-':
 			if this.ch == '>' {
 				token = ARROW
+				lit = "->"
+				this.next()
 			} else {
 				this.error(this.file.Offset(pos), fmt.Sprintf("illegal character %#U", ch))
 				token = ILLEGAL
-				lit = string(ch)
+				//lit = string(ch)
 			}
 		default:
 			this.error(this.file.Offset(pos), fmt.Sprintf("illegal character %#U", ch))
 			token = ILLEGAL
-			lit = string(ch)
+			//lit = string(ch)
 		}
 	}
 
@@ -337,6 +340,46 @@ func (this *Lexer) scanString() string {
 	}
 
 	return string(this.src[offs:this.offset])
+}
+
+func (this *Lexer) scanRawString() string {
+	// '`' opening already consumed
+	offs := this.offset - 1
+
+	hasCR := false
+	for {
+		ch := this.ch
+		if ch < 0 {
+			this.error(offs, "raw string literal not terminated")
+			break
+		}
+		this.next()
+		if ch == '`' {
+			break
+		}
+		if ch == '\r' {
+			hasCR = true
+		}
+	}
+
+	lit := this.src[offs:this.offset]
+	if hasCR {
+		lit = stripCR(lit)
+	}
+
+	return string(lit)
+}
+
+func stripCR(b []byte) []byte {
+	c := make([]byte, len(b))
+	i := 0
+	for _, ch := range b {
+		if ch != '\r' {
+			c[i] = ch
+			i++
+		}
+	}
+	return c[:i]
 }
 
 // scanEscape parses an escape sequence where rune is the accepted
@@ -421,21 +464,26 @@ func (this *Lexer) scanNumber(seenDecimalPoint bool) (Token, string) {
 				this.error(offs, "illegal hexadecimal number")
 			}
 		} else {
-			// octal int or float
-			seenDecimalDigit := false
-			this.scanMantissa(8)
-			if this.ch == '8' || this.ch == '9' {
-				// illegal octal int or float
-				seenDecimalDigit = true
-				this.scanMantissa(10)
-			}
+			this.scanMantissa(10)
 			if this.ch == '.' || this.ch == 'e' || this.ch == 'E' || this.ch == 'i' {
 				goto fraction
 			}
-			// octal int
-			if seenDecimalDigit {
-				this.error(offs, "illegal octal number")
-			}
+			/*
+				// octal int or float
+				seenDecimalDigit := false
+				this.scanMantissa(8)
+				if this.ch == '8' || this.ch == '9' {
+					// illegal octal int or float
+					seenDecimalDigit = true
+					this.scanMantissa(10)
+				}
+				if this.ch == '.' || this.ch == 'e' || this.ch == 'E' || this.ch == 'i' {
+					goto fraction
+				}
+				// octal int
+				if seenDecimalDigit {
+					this.error(offs, "illegal octal number")
+				}*/
 		}
 		goto exit
 	}
